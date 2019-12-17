@@ -26,4 +26,27 @@ run pos mem =
             2 -> (*)
             99 -> \ _ _ -> 0
 
-ans = head $ run 0 memory
+day2part1 = head $ run 0 memory
+
+-- Part 2, run through combinations of initialized memory looking for a final value that
+-- satisfies the formula given
+target = 19690720
+
+-- | Given a range as [(Int,Int)] and a target, find the pair that solves or nothing
+solve :: [(Int,Int)] -> Int -> Maybe (Int,Int)
+solve [] _ = Nothing
+solve ((v1,v2):xs) target =
+    if v0 == target
+    then Just (v1, v2)
+    else solve xs target
+    where
+        mem = initMem v1 v2
+        newMem = run 0 mem
+        v0 = newMem !! 0
+
+day2part2 = case solve [(x,y) | x <- [0..99], y <- [0..99]] target of
+            Just (v1, v2) -> Just (100 * v1 + v2)
+            Nothing -> Nothing
+
+
+    
