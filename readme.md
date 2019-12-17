@@ -25,6 +25,22 @@ part2 = sum (map deepFuelReq amounts)
 ```
 Could probably get tighter rather than having that `if` stuck in the middle, but this worked and was clear to me.
 
+### Day 02 Part 1
+The only two interesting things here were finding and using the `splitAt` function from the `Data.List` package, I could have wrote that myself but I didn't feel like it. And the run function which I made two versions of. The first version whas a bit shorter by line count, but required repeating the recursive call twice which was aesthetically unpleasant. Went with this:
+
+```Haskell
+run :: Int -> [Int] -> [Int]
+run pos mem =
+    if op /= 99 then run (pos + 4) (apply fn p1 p2 pAns mem) else mem
+    where
+        (op:p1:p2:pAns:_) = drop pos mem
+        fn = case op of
+            1 -> (+)
+            2 -> (*)
+            99 -> \ _ _ -> 0
+```
+I'm using the `where` clause a fair amount. Not sure if I'm missing a more idomatic approch to solving these problems, time will tell.
+
 ## References
 * [Stack](https://docs.haskellstack.org/en/stable/GUIDE) - build system & all around `nvm` like capabilities ... read the docs to get the whole picture.
 * Using [QuasiQuoter](http://hackage.haskell.org/package/string-qq) ([Source](git://github.com/audreyt/string-qq)) to allow multi-line strings. I'm just learning Haskell, but it appears that language extensions / macros are possible, and that's how this thing is made to work.
