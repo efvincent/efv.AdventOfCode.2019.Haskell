@@ -26,18 +26,17 @@ part2 = sum (map deepFuelReq amounts)
 Could probably get tighter rather than having that `if` stuck in the middle, but this worked and was clear to me.
 
 ### Day 02 Part 1
-The only two interesting things here were finding and using the `splitAt` function from the `Data.List` package, I could have wrote that myself but I didn't feel like it. And the run function which I made two versions of. The first version whas a bit shorter by line count, but required repeating the recursive call twice which was aesthetically unpleasant. Went with this:
+The only two interesting things here were finding and using the `splitAt` function from the `Data.List` package, I could have wrote that myself but I didn't feel like it. And the run function which I made two versions of. The first version whas a bit shorter by line count, but required repeating the recursive call twice which was aesthetically unpleasant. Went with the following. Originally the clause `(replace pAns...)` was factored out into a separate `apply` function defined in the `where` clause, but that was unneeded. I like that case can be one line if the cases are short, like here.
 
 ```Haskell
 run :: Int -> [Int] -> [Int]
 run pos mem =
-    if op /= 99 then run (pos + 4) (apply fn p1 p2 pAns mem) else mem
+    if op /= 99 
+    then run (pos + 4) (replace pAns (fn (mem!!p1) (mem!!p2)) mem) 
+    else mem
     where
         (op:p1:p2:pAns:_) = drop pos mem
-        fn = case op of
-            1 -> (+)
-            2 -> (*)
-            99 -> \ _ _ -> 0
+        fn = case op of 1 -> (+); 2 -> (*); 99 -> \ _ _ -> 0
 ```
 I'm using the `where` clause a fair amount. Not sure if I'm missing a more idomatic approch to solving these problems, time will tell.
 

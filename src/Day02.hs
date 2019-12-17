@@ -14,6 +14,7 @@ initMem v1 v2 = replace 1 v1 (replace 2 v2 day02)
 
 memory = initMem 12 2
 
+run :: Int -> [Int] -> [Int]
 run pos mem =
     if op /= 99 
     then run (pos + 4) (replace pAns (fn (mem!!p1) (mem!!p2)) mem) 
