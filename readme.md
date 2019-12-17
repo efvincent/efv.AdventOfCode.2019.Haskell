@@ -41,6 +41,24 @@ run pos mem =
 ```
 I'm using the `where` clause a fair amount. Not sure if I'm missing a more idomatic approch to solving these problems, time will tell.
 
+## Day 02 Part 2
+Again, pretty easy, needed to run through a comprehention to generate the possible inputs. Those were
+run through a recursive function that will short circuit out when it finds the solution:
+
+```Haskel
+solve :: [(Int,Int)] -> Int -> Maybe (Int,Int)
+solve [] _ = Nothing
+solve ((v1,v2):xs) target =
+    if target == head (run 0 $ initMem v1 v2)
+    then Just (v1, v2)
+    else solve xs target
+    
+day2part2 = case solve [(x,y) | x <- [0..99], y <- [0..99]] target of
+            Just (v1, v2) -> Just (100 * v1 + v2)
+            Nothing -> Nothing
+```
+
+
 ## References
 * [Stack](https://docs.haskellstack.org/en/stable/GUIDE) - build system & all around `nvm` like capabilities ... read the docs to get the whole picture.
 * Using [QuasiQuoter](http://hackage.haskell.org/package/string-qq) ([Source](git://github.com/audreyt/string-qq)) to allow multi-line strings. I'm just learning Haskell, but it appears that language extensions / macros are possible, and that's how this thing is made to work.
