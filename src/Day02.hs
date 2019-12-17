@@ -14,8 +14,8 @@ initMem v1 v2 = replace 1 v1 (replace 2 v2 day02)
 
 memory = initMem 12 2
 
-run pos mem = 
-    let 
+run pos mem =
+    let
         apply :: (Int -> Int -> Int) -> Int -> Int -> Int -> [Int] -> [Int]
         apply f p1 p2 pAns mem = replace pAns (f (mem !! p1) (mem !! p2)) mem in
     if op /= 99 then run (pos + 4) (apply fn p1 p2 pAns mem) else mem
@@ -36,17 +36,12 @@ target = 19690720
 solve :: [(Int,Int)] -> Int -> Maybe (Int,Int)
 solve [] _ = Nothing
 solve ((v1,v2):xs) target =
-    if v0 == target
+    if target == head (run 0 $ initMem v1 v2)
     then Just (v1, v2)
     else solve xs target
-    where
-        mem = initMem v1 v2
-        newMem = run 0 mem
-        v0 = newMem !! 0
 
+-- | This can be simplified (pretty sure) once I get to the point of learning
+-- | how to use `do` notation and the `Maybe` monad
 day2part2 = case solve [(x,y) | x <- [0..99], y <- [0..99]] target of
             Just (v1, v2) -> Just (100 * v1 + v2)
             Nothing -> Nothing
-
-
-    
