@@ -44,7 +44,7 @@ I'm using the `where` clause a fair amount. Not sure if I'm missing a more idoma
 Again, pretty easy, needed to run through a comprehention to generate the possible inputs. Those were
 run through a recursive function that will short circuit out when it finds the solution:
 
-```Haskel
+```Haskell
 solve :: [(Int,Int)] -> Int -> Maybe (Int,Int)
 solve [] _ = Nothing
 solve ((v1,v2):xs) target =
