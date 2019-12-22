@@ -11,15 +11,12 @@ digs 0 = []
 digs x = digs (x `div` 10) ++ [x `mod` 10]
 
 -- | Assures that each digit in a list is equal or greater than the previous
-fixup :: Int -> [Int]
-fixup = fix . digs
-  where
-    fix :: [Int] -> [Int]
-    fix [] = []
-    fix [n] = [n]
-    fix (n1:n2:n3:rest) | n2 < n1 = n1 : fix (n1:n1:rest)
-    fix (n1:n2:[]) | n2 < n1 = [n1,n1] 
-    fix (n1:rest) = n1 : fix rest
+fixup :: [Int] -> [Int]
+fixup [] = []
+fixup [n] = [n]
+fixup (n1:n2:n3:rest) | n2 < n1 = n1 : fixup (n1:n1:rest)
+fixup (n1:n2:[]) | n2 < n1 = [n1,n1] 
+fixup (n1:rest) = n1 : fixup rest
 
 -- | turns a list of digits back into a number
 undigs :: [Int] -> Int
@@ -34,7 +31,7 @@ proc1 mx n c
   | isValid = proc1 mx (n'+1) (n':c)
   | otherwise = proc1 mx (n'+1) c
   where
-      check = fixup n
+      check = fixup $ digs n
       n' = undigs check
       isValid = (maximum . map length . group $ check) >= 2
 
@@ -45,7 +42,7 @@ proc2 mx n c
   | isValid = proc2 mx (n'+1) (n':c)
   | otherwise = proc2 mx (n'+1) c
   where
-      check = fixup n
+      check = fixup $ digs n
       n' = undigs check
       isValid = elem 2 . map length . group $ check
 
