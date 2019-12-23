@@ -15,7 +15,7 @@ fixup :: [Int] -> [Int]
 fixup [] = []
 fixup [n] = [n]
 fixup (n1:n2:n3:rest) | n2 < n1 = n1 : fixup (n1:n1:rest)
-fixup (n1:n2:[]) | n2 < n1 = [n1,n1] 
+fixup [n1,n2] | n2 < n1 = [n1,n1] 
 fixup (n1:rest) = n1 : fixup rest
 
 -- | turns a list of digits back into a number
