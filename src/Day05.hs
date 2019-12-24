@@ -1,45 +1,93 @@
 module Day05 where
 
     import Data.List (splitAt)
-    import AdventData (day02)
-    
-    replace :: Int -> a -> [a] -> [a]
-    replace i e xs = case splitAt i xs of
-        (before, _:after) -> before ++ e : after
-        _ -> xs
-    
-    -- instructions say to replace posistions 1 and 2
-    initMem :: Int -> Int -> [Int]
-    initMem v1 v2 = replace 1 v1 (replace 2 v2 day02)
-    
-    memory = initMem 12 2
-    
+    import AdventData (day05)
+
+{--------
+| Types |
+--------}
+
+    data Op = Add | Mult | Inp | Outp
+            deriving (Show, Enum, Eq)
+
+    -- | From an integer that indicates an opcode, get the opcode and the number of parameters expected
+    opOfInt n = case n of 1 -> (Add,2); 2 -> (Mult,2); 3 -> (Inp,1); 4 -> (Outp,1)
+
+    -- | Parameter is either a positional type, where the Int is an address, or
+    --   a value type, where the Int is the literal value of the parameter   
+    data PosMode = Pos | Immed deriving (Show)
+    itoPosMode i = case i of 0 -> Pos; 1 -> Immed
+
+    type Instruction = (Op, Int, [Int])     -- | Operation, Offset to next, List of raw or dereferenced operators
+
+    type Memory = [Int]
+
+    data World = World { ins    :: [Int]
+                       , outs   :: [Int]
+                       , mem    :: Memory
+                       , offset :: Int
+                       } deriving (Show)
+
+{----------\
+| Solution |
+\----------}
+
+    -- | starting state of the world
+    world = World { ins    = [1]
+                  , outs   = []
+                  , mem    = day05
+                  , offset = 0 }
+
+    -- | Read an input from the world
+    wRead :: World -> (Int,World)
+    wRead w =
+        let ins' = ins w in
+            case ins' of
+                [] -> error "No input left in the world"
+                m  -> (head ins', w { ins = tail m })
+
+    -- | Write output to the world
+    wWrite :: World -> Int -> World
+    wWrite w v = w { outs = outs w ++ [v] }
+
+    toVal :: World -> (PosMode, Int) -> Int
+    toVal w (Pos, i) = mem world !! i
+    toVal _ (Immed, i) = i
+
+    intToInst :: Int -> World -> (Op, [(PosMode, Int)])
+    intToInst i w =
+        (op, zip modes raws)
+        where
+            ds = digs i
+            l = length ds
+            (op,nParams) = opOfInt . undigs $ drop (l - 2) ds
+            modes = [itoPosMode (ds !!(l - 3 - p)) | p <- [0..nParams-1]]
+            raws = take (length modes) $ drop (offset world) (mem world)
+
     run :: Int -> [Int] -> [Int]
     run pos mem =
-        if op /= 99 
-        then run (pos + 4) (replace pAns (fn (mem!!p1) (mem!!p2)) mem) 
+        if op /= 99
+        then run (pos + 4) (replace pAns (fn (mem!!p1) (mem!!p2)) mem)
         else mem
         where
             (op:p1:p2:pAns:_) = drop pos mem
             fn = case op of 1 -> (+); 2 -> (*); 99 -> \ _ _ -> 0
-    
-    day2part1 = head $ run 0 memory
-    
-    -- Part 2, run through combinations of initialized memory looking for a final value that
-    -- satisfies the formula given
-    target = 19690720
-    
-    -- | Given a range as [(Int,Int)] and a target, find the pair that solves or nothing
-    solve :: [(Int,Int)] -> Int -> Maybe (Int,Int)
-    solve [] _ = Nothing
-    solve ((v1,v2):xs) target =
-        if target == head (run 0 $ initMem v1 v2)
-        then Just (v1, v2)
-        else solve xs target
-    
-    -- | This can be simplified (pretty sure) once I get to the point of learning
-    -- | how to use `do` notation and the `Maybe` monad
-    day2part2 = case solve [(x,y) | x <- [0..99], y <- [0..99]] target of
-                Just (v1, v2) -> Just (100 * v1 + v2)
-                Nothing -> Nothing
-    
+
+{--------------------
+| Utility Functions |
+--------------------}
+
+    -- | Turns an integer into an list of digits
+    digs :: Int -> [Int]
+    digs 0 = []
+    digs x = digs (x `div` 10) ++ [x `mod` 10]
+
+    -- | turns a list of digits back into a number
+    undigs :: [Int] -> Int
+    undigs [] = 0
+    undigs (n:xs) = n * (10 ^ length xs) + undigs xs
+
+    replace :: Int -> a -> [a] -> [a]
+    replace i e xs = case splitAt i xs of
+        (before, _:after) -> before ++ e : after
+        _ -> xs
