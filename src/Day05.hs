@@ -18,7 +18,7 @@ module Day05 where
     data PosMode = Pos | Immed deriving (Show)
     itoPosMode i = case i of 0 -> Pos; 1 -> Immed
 
-    type Instruction = (Op, Int, [Int])     -- | Operation, Offset to next, List of raw or dereferenced operators
+    type Statement = (Op, [(PosMode, Int)])
 
     type Memory = [Int]
 
@@ -54,15 +54,20 @@ module Day05 where
     toVal w (Pos, i) = mem world !! i
     toVal _ (Immed, i) = i
 
-    intToInst :: Int -> World -> (Op, [(PosMode, Int)])
+    intToInst :: Int -> World -> Statement
     intToInst i w =
-        (op, zip modes raws)
+        ((op, nParams), zip modes raws)
         where
             ds = digs i
             l = length ds
             (op,nParams) = opOfInt . undigs $ drop (l - 2) ds
             modes = [itoPosMode (ds !!(l - 3 - p)) | p <- [0..nParams-1]]
-            raws = take (length modes) $ drop (offset world) (mem world)
+            raws = take (length modes) $ drop (offset w) (mem w)
+
+    -- eval gets the answer, still need a function to determine where the answer should go for add and mult and even read
+    eval :: World -> Statement -> World
+    eval w (Add, params) = toVal w (params !! 0) + toVal w (params !! 1)
+        w
 
     run :: Int -> [Int] -> [Int]
     run pos mem =
