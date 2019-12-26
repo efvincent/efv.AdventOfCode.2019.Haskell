@@ -5,6 +5,21 @@ module AdventData where
 import Data.Text (Text)
 import Data.String.QQ
 
+day06ex02 :: String
+day06ex02 = [s|COM)B
+B)C
+C)D
+D)E
+E)F
+B)G
+G)H
+D)I
+E)J
+J)K
+K)L
+K)YOU
+I)SAN|]
+
 day06ex01 :: String
 day06ex01 = [s|COM)B
 B)C
