@@ -27,7 +27,6 @@ makeOrbitMap raw =
             Just edges -> M.insert key (updateMapEntry newLink edges) m
             Nothing -> M.insert key [newLink] m
 
-
 type Planet = String
 data State = State { path :: [Planet]
                    , dead :: [Planet]
@@ -43,23 +42,26 @@ checkCandidates candidates state =
     case candidates \\ (path state ++ dead state) of
         [] -> Nothing
         cands ->
-            case mapMaybe (solve2 state) cands of
+            case mapMaybe (findCandidates state) cands of
                 [] -> Nothing
                 states -> Just $ head (sortOn path states)
 
-solve2 :: State -> Planet -> Maybe State
-solve2 state current =
-    -- If the current candidate == (to state) then Just (path state)
-    -- Append the current location to the path
-    -- For the current location, get all the candidates
-    -- if there are no candidates, return Nothing
-    -- otherwise, checkCandidates state cadidates
+-- | Assuming the current planet will be part of the solution, find the candidates
+--   for the next step. If the current state is the target state, then we're done
+findCandidates :: State -> Planet -> Maybe State
+findCandidates state current =
+    -- Append the current planet to the path
+    -- For the current planet, get all possible next steps
+    -- if there are no possible next steps, this is a failed path, return Nothing
+    -- otherwise, use checkCandidates on the list of all possible next steps
     case (current == to state, M.lookup current (om state)) of
     (True,_) -> Just state
     (_,Just cands') | null cands' -> Nothing
     (_,Just cands') -> checkCandidates cands' state { path = current : path state }
     (_,Nothing) -> Nothing
 
+-- | Given the raw orbit map, the from planet and the two planet, find the
+--   length of the shortest trip
 solve :: String -> String -> String -> Int
 solve raw from to =
     let s = State { path = [], dead = [], to = to, om = makeOrbitMap raw } in
