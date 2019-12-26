@@ -4,7 +4,7 @@
 module Day06b where
 
 import           Data.List.Split (splitOn)
-import           Data.List ((\\))
+import           Data.List ((\\),sortOn)
 import           Control.Monad (foldM)
 import qualified Data.Map.Strict as M
 import           AdventData (day06,day06ex01,day06ex02)
@@ -59,8 +59,9 @@ solve1 candidates state =
             [] -> Nothing
             cands ->
                 case filterM $ map (solve2 state) cands of
-                    (s:ss) -> Just s
                     [] -> Nothing
+                    states -> Just $ head (sortOn path states)      -- This is no good, you need to take them all to
+                                                                    -- the solution, then see which is shortest
 
 solve2 :: State -> Planet -> Maybe State
 solve2 state current =
