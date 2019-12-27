@@ -43,8 +43,10 @@ module Day05 where
     -- | World has inputs and outputs, a memory, and a current offset which is the pointer to the next instruction
     --   to be executed
     data World = World { ins    :: [Int]
+                       , inWait :: Bool     -- used to indicate suspended awaiting input
                        , outs   :: [Int]
                        , mem    :: Memory
+                       , wid    :: Int      -- in 7b, it's useful to know which prog is running
                        , offset :: Int
                        } deriving (Show)
 
@@ -55,8 +57,10 @@ module Day05 where
     -- | starting state of the world
     initialWorld 
         = World { ins    = [1]
+                , inWait = False    
                 , outs   = []
                 , mem    = day05
+                , wid    = 0        
                 , offset = 0 }
 
     -- | Given a world and a value instruction, get the value
@@ -93,11 +97,16 @@ module Day05 where
     -- | Read from the World's inputs, write it to the target address, return modified world
     readOp :: World -> Address -> World
     readOp world addr =
-        world {
-            mem = replace addr (head . ins $ world) (mem world),
-            ins = tail $ ins world,
-            offset = offset world + 2
-        }
+        if null inputs 
+        then world { inWait = True }
+        else
+            world {
+                mem = replace addr (head . ins $ world) (mem world),
+                ins = tail $ ins world,
+                offset = offset world + 2
+            }
+      where
+        inputs = ins world
 
     -- | Write the value found by evaluating the value instruction to the World's output, return modified world
     writeOp :: World -> ValueInstruction -> World
@@ -133,19 +142,22 @@ module Day05 where
     eval :: World -> Statement -> (World, Bool)
     eval world (Add,  params) = (binOp world Add  params, True)
     eval world (Mult, params) = (binOp world Mult params, True)
-    eval world (Inp,  ((Pos,addr):[])) = (readOp world addr, True)
     eval world (Outp, (param:[])) = (writeOp world param, True)        
     eval world (JumpF,params) = (jumpOp world JumpF params, True)
     eval world (JumpT,params) = (jumpOp world JumpT params, True)
     eval world (Equals,params) = (boolOp world Equals params, True)
     eval world (LessThan,params) = (boolOp world LessThan params, True)    
     eval world (Terminate, _) = (world, False)
-
+    eval world (Inp, ((Pos,addr):[])) = 
+        (w', not $ inWait w')
+      where
+        w' = readOp world addr
+ 
     run :: World -> World
     run world =
         case eval world (addrToStatement world) of
             (world', True) -> run world'
-            (world', False) -> world
+            (world', False) -> world'
 
     solution1 = run initialWorld
     solution2 = run initialWorld { ins = [5] }
