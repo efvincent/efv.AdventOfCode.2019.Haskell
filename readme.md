@@ -57,6 +57,9 @@ day2part2 = case solve [(x,y) | x <- [0..99], y <- [0..99]] target of
             Nothing -> Nothing
 ```
 
+## Day 07 Part 2
+Missed several days of not taking. I'll catch up soon...
+Day 07 part 2 was tough - I made it tougher than it had to be - dumb mistake, not reading carefully enough. Oh well lesson learned. More notes soon...
 
 ## References
 * [Stack](https://docs.haskellstack.org/en/stable/GUIDE) - build system & all around `nvm` like capabilities ... read the docs to get the whole picture.
