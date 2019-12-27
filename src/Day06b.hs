@@ -56,8 +56,8 @@ findCandidates state current =
     -- otherwise, use checkCandidates on the list of all possible next steps
     case (current == to state, M.lookup current (om state)) of
     (True,_) -> Just state
-    (_,Just cands') | null cands' -> Nothing
-    (_,Just cands') -> checkCandidates cands' state { path = current : path state }
+    (_,Just cs) | null cs -> Nothing
+    (_,Just cs) -> checkCandidates cs state { path = current : path state }
     (_,Nothing) -> Nothing
 
 -- | Given the raw orbit map, the from planet and the two planet, find the
@@ -65,6 +65,5 @@ findCandidates state current =
 solve :: String -> String -> String -> Int
 solve raw from to =
     let s = State { path = [], dead = [], to = to, om = makeOrbitMap raw } in
-    let ja = checkCandidates [from] s in
-    let (Just a) = ja in
+    let (Just a) = checkCandidates [from] s in
     length (path a) - 2        -- -2 b/c we discount the actual start and destination
