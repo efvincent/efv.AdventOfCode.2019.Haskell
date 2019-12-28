@@ -28,7 +28,7 @@ module Day05 where
     data PosMode = Pos | Immed deriving (Show)
     itoPosMode i = case i of 0 -> Pos; 1 -> Immed
 
-    type Address = Int
+    type Address = Integer
 
     -- | Instruction on obtaining a value either in position mode or immediate mode
     type ValueInstruction = (PosMode, Address)
@@ -38,16 +38,17 @@ module Day05 where
     type Statement = (Op, [ValueInstruction])
 
     -- | Computer memory modeled by a list of ints. Not great for perf.
-    type Memory = [Int]
+    type Memory = [Integer]
 
     -- | World has inputs and outputs, a memory, and a current offset which is the pointer to the next instruction
     --   to be executed
-    data World = World { ins    :: [Int]
+    data World = World { ins    :: [Integer]
                        , inWait :: Bool     -- used to indicate suspended awaiting input
-                       , outs   :: [Int]
+                       , outs   :: [Integer]
                        , mem    :: Memory
                        , wid    :: Int      -- in 7b, it's useful to know which prog is running
-                       , offset :: Int
+                       , offset :: Integer
+                       , rbase  :: Integer
                        } deriving (Show)
 
 {----------\
@@ -60,12 +61,13 @@ module Day05 where
                 , inWait = False    
                 , outs   = []
                 , mem    = day05
-                , wid    = 0        
+                , wid    = 0 
+                , rbase  = 0       
                 , offset = 0 }
 
     -- | Given a world and a value instruction, get the value
-    toVal :: World -> ValueInstruction -> Int
-    toVal world (Pos, i) = mem world !! i
+    toVal :: World -> ValueInstruction -> Integer
+    toVal world (Pos, i) = mem world !! (fromInteger i)
     toVal _ (Immed, i) = i
 
     -- | Get the statement at the next offset in the world 
@@ -73,14 +75,14 @@ module Day05 where
     addrToStatement world =
         (op, zip modes raws)
         where
-            raw = mem world !! (offset world)
+            raw = mem world !! (fromInteger $ offset world)
             ds = 
                 let d = digs raw in
                 if length d < 5 then (take (5 - length d) $ repeat 0) ++ d else d 
             l = length ds
             (op,nParams) = opOfInt . undigs $ drop (l - 2) ds                   
             modes = [itoPosMode (ds !!(l - 3 - p)) | p <- [0..nParams-1]]
-            raws = take (length modes) $ drop (offset world + 1) (mem world)
+            raws = take (length modes) $ drop (fromInteger $ offset world + 1) (mem world)
 
     -- | Evaluate the binary operation operation, return a modified world
     binOp :: World -> Op -> [ValueInstruction] -> World
@@ -90,7 +92,7 @@ module Day05 where
             offset = offset world + 4
         }
       where 
-        resultAddr = snd $ params !! 2
+        resultAddr = fromInteger $ snd $ params !! 2
         fn = case op of Add -> (+); Mult -> (*)
         (v1, v2) = (toVal world (head params), toVal world (params !! 1))
 
@@ -101,7 +103,7 @@ module Day05 where
         then world { inWait = True }
         else
             world {
-                mem = replace addr (head . ins $ world) (mem world),
+                mem = replace (fromInteger addr) (head . ins $ world) (mem world),
                 ins = tail $ ins world,
                 offset = offset world + 2
             }
@@ -134,7 +136,7 @@ module Day05 where
         }
         where
         (v1,v2) = (toVal world (head params), toVal world (params !! 1))
-        addr = snd (params !! 2)
+        addr = fromInteger $ snd (params !! 2)
         fn = if op == Equals then (==) else (<)
         newVal = if fn v1 v2 then 1 else 0
 
@@ -167,12 +169,12 @@ module Day05 where
 --------------------}
 
     -- | Turns an integer into an list of digits
-    digs :: Int -> [Int]
+    digs :: Integer -> [Integer]
     digs 0 = []
     digs x = digs (x `div` 10) ++ [x `mod` 10]
 
     -- | turns a list of digits back into a number
-    undigs :: [Int] -> Int
+    undigs :: [Integer] -> Integer
     undigs [] = 0
     undigs (n:xs) = n * (10 ^ length xs) + undigs xs
 

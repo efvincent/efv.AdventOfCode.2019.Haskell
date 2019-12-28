@@ -4,27 +4,26 @@ import           AdventData (day07,day07ex01,day07ex02,day07ex03,day07bex01,day0
 import           Data.List (permutations)
 import qualified Day05 as D
 
--- worlds memory = [D.World { D.ins = [w], D.outs = [], D.mem = memory, D.offset = 0 } | w <- permutations [0..4]]
-
-progSets :: [Int] -> Int -> Int -> [[D.World]]
+progSets :: [Integer] -> Integer -> Integer -> [[D.World]]
 progSets mem n1 n2 =
     map makeProgSet $ permutations [n1..n2]
   where
-    makeProgSet :: [Int] -> [D.World]
+    makeProgSet :: [Integer] -> [D.World]
     makeProgSet settings =
       let idxSettings = zip [0..] settings in 
       map makeWorld idxSettings
 
-    makeWorld :: (Int, Int) -> D.World
+    makeWorld :: (Int, Integer) -> D.World
     makeWorld (wid, w) =
         D.World { D.ins = [w]
                 , D.outs = []
                 , D.mem = mem
                 , D.inWait = False
                 , D.wid = wid
+                , D.rbase = 0
                 , D.offset = 0 }
 
-runSeries :: Int -> [D.World] -> Int
+runSeries :: Integer -> [D.World] -> Integer
 runSeries sig (w:ws) =
     case ws of
         [] -> res
@@ -42,10 +41,10 @@ ans     = maximum $ map (runSeries 0) (progSets day07 0 4)
 -- get a non inWait termination. That output is the answer
 
 -- run one progset
-runProgSet :: [D.World] -> Int
+runProgSet :: [D.World] -> Integer
 runProgSet = loop Nothing
   where
-    loop :: Maybe D.World -> [D.World] -> Int
+    loop :: Maybe D.World -> [D.World] -> Integer
     loop (Just prev) (next:rest) =
         -- In the case where there was a pervious run, use it's output
         -- as the input to the current one. Also, push the last one at
@@ -68,7 +67,7 @@ runProgSet = loop Nothing
         first' = first { D.ins = D.ins first ++ [0] }
         result = D.run first' { D.inWait = False }
 
-solve :: [Int] -> Int
+solve :: [Integer] -> Integer
 solve prog =
     maximum ans
   where
