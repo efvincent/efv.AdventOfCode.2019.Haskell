@@ -24,6 +24,7 @@ dependencies:
 - text
 - split
 - containers
+- utility-ht
 
 library:
   source-dirs: src

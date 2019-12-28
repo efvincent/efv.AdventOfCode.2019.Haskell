@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: ec557ac9cfada36f52f14eca12b71f28087b9654783e71802cecc7e6a263a2f3
+-- hash: 6d2b5380868fff0f6f46d1893ff5789694738edb522cae32dde9e2043b291d8b
 
 name:           efv-advent
 version:        0.1.0.0
@@ -17,7 +17,7 @@ copyright:      2019 Eric Vincent
 license:        BSD3
 build-type:     Simple
 extra-source-files:
-    readme.md
+    README.md
 
 source-repository head
   type: git
@@ -31,6 +31,10 @@ library
       Day03
       Day04
       Day05
+      Day06a
+      Day06b
+      Day07
+      Day08
   other-modules:
       Paths_efv_advent
   hs-source-dirs:
@@ -41,6 +45,7 @@ library
     , split
     , string-qq
     , text
+    , utility-ht
   default-language: Haskell2010
 
 executable efv-advent-exe
@@ -57,6 +62,7 @@ executable efv-advent-exe
     , split
     , string-qq
     , text
+    , utility-ht
   default-language: Haskell2010
 
 test-suite efv-advent-test
@@ -74,4 +80,5 @@ test-suite efv-advent-test
     , split
     , string-qq
     , text
+    , utility-ht
   default-language: Haskell2010
