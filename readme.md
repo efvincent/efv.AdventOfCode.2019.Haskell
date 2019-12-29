@@ -39,8 +39,7 @@ run pos mem =
 I'm using the `where` clause a fair amount. Not sure if I'm missing a more idomatic approch to solving these problems, time will tell.
 
 ## [Day 02](https://adventofcode.com/2019/day/2) Part 2
-Again, pretty easy, needed to run through a comprehention to generate the possible inputs. Those were
-run through a recursive function that will short circuit out when it finds the solution:
+Again, pretty easy, needed to run through a comprehention to generate the possible inputs. Those were run through a recursive function that will short circuit out when it finds the solution:
 
 ```Haskell
 solve :: [(Int,Int)] -> Int -> Maybe (Int,Int)
@@ -114,8 +113,79 @@ fixup [n1,n2] | n2 < n1 = [n1,n1]
 fixup (n1:rest) = n1 : fixup rest
 ```
 
-
 F# of course allows recursion, but it often feels like an antipattern if there's any other way to get the job done. Haskell feels much more welcoming wrt recursion.
+
+## [Day 05](https://adventofcode.com/2019/day/4)
+_I've revisited day 5 a couple of times as required by subsequent days_
+
+Day 5 is when it starts getting really fun. The IntCode computer from day 2 starts getting enhanced. This happens here and also subsequent days. The first enhancement is adding opcodes for input and output. I completely start over from `Day02.hs` with `Day05.hs` The first difference is that we have more opcodes:
+
+```Haskell
+data Op = Add | Mult | Inp | Outp
+        deriving (Show, Enum, Eq)
+
+-- | From an integer that indicates an opcode, get the opcode and the number of parameters expected
+opOfInt n = case n of 1 -> (Add,2) 
+                        2 -> (Mult,2)
+                        3 -> (Inp,1) 
+                        4 -> (Outp,1)
+```
+Now in addition to add and multiply, the computer can retrieve input from some imaginary stream one `Int` at a time, and similarly write output to some imaginary out stream. `opOfInt` translates the opcode from memory into the `Op` type, along with an integer indicating how far to move the instruction pointer after execution.
+
+The state of the computer is maintained in this record type (aka Sum type):
+
+```Haskell
+data World = World { ins     :: [Int]
+                    , outs   :: [Int]
+                    , mem    :: Memory
+                    , offset :: Int
+                    } deriving (Show)
+
+```
+`[Int]` implement the input and output streams, `Memory` is an alias for `[Int]` which comes in handly later when we change memory implementation. Besides that all that's left is the offset, which points to the next instruction to be executed. The `run` function recursively evaluates the next statement against the state of the world, getting a new world back, and a directive to either halt or continue. 
+
+```Haskell
+    run :: World -> World
+    run world =
+        case eval world (addrToStatement world) of
+            (world', True) -> run world'
+            (world', False) -> world
+```
+
+`eval` is now a case function that delegates to the code to run particular opcodes (Note that Day 5 part 2 added even more opcodes for jumping to addresses, and doing boolean comparisons for equals and less than).
+
+```Haskell
+-- | select appropriate operation evaluator
+eval :: World -> Statement -> (World, Bool)
+eval world (Add,  params)          = (binOp world Add  params, True)
+eval world (Mult, params)          = (binOp world Mult params, True)
+eval world (Inp,  ((Pos,addr):[])) = (readOp world addr, True)
+eval world (Outp, (param:[]))      = (writeOp world param, True)        
+eval world (JumpF,params)          = (jumpOp world JumpF params, True)
+eval world (JumpT,params)          = (jumpOp world JumpT params, True)
+eval world (Equals,params)         = (boolOp world Equals params, True)
+eval world (LessThan,params)       = (boolOp world LessThan params, True)    
+eval world (Terminate, _)          = (world, False)
+```
+
+Each operation evaluation function (like `binOp`, `readOp`, `writeOp`, etc), does its work, and determines if the computer should halt or continue. For example `binOp` handles the `Add` and `Mult` operations:
+
+```Haskell
+-- | Evaluate the binary operation operation, return a modified world
+binOp :: World -> Op -> [ValueInstruction] -> World
+binOp world op params =
+    world {
+        mem = replace resultAddr (fn v1 v2) (mem world),
+        offset = offset world + 4
+    }
+    where 
+    resultAddr = snd $ params !! 2
+    fn = case op of Add -> (+); Mult -> (*)
+    (v1, v2) = (toVal world (head params), toVal world (params !! 1))
+```
+
+There's more to it - check the source. Working on the IntCode computer is a lot of fun and I'm enjoying it when we're asked to return to it an enhance it. This happens in Day 7 and Day 9 (writing this after Day 10) again so far, I'm sure they'll continue to revisit it.
+
 
 ## Day 07 Part 2
 Missed several days of not taking. I'll catch up soon...
