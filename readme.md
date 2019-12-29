@@ -1,8 +1,6 @@
 # Advent of Code 2019
 Use Advent as exercises while learning Haskell.
 
-**Note**: Haskel Advent of Code 2019 is under my twitter login, and the F# version is under my Google login.
-
 ## Notes / Experiences
 Since this is a Haskell Learning experience, I'm going to do a little bit of a diary on how each exercise went. Starting at day 1, I've had almost no experience with Haskell. I've installed it, gone through a few pages of getting started from here and there. Timing is right with my being reminded of Advent of code and my starting to learn Haskell, so here we are.
 
@@ -85,6 +83,40 @@ This is a bit different from F#, which gives you some sugar, allowing binding of
 
 `let..in` binding I use less often as it's more cumbersome if you have more than one or two bindings to create. It was the `let..in` approach that F# used in its very early days while it was still a research project at MS Research, until they added the more terse, sugared syntax.
 
+## [Day 04](https://adventofcode.com/2019/day/4)
+*written post-dated after day 10*
+Day 4 was pretty easy as well. Turning the number into a list of digits allowed for simple manipulation. Getting more comfortable with both recursion and gates. 
+
+```Haskell
+-- | first solution, rising sequnce of digits (via fixup), valid has at least one
+-- occurence of at least 2 sequential digits
+proc1 :: Int -> Int -> [Int] -> [Int]
+proc1 mx n c
+    | n' > mx = c
+    | isValid = proc1 mx (n'+1) (n':c)
+    | otherwise = proc1 mx (n'+1) c
+  where
+    check = fixup $ digs n
+    n' = undigs check
+    isValid = (maximum . map length . group $ check) >= 2
+```
+Combined with the `where` clause, using gates feels very expressive and to the point, with almost no added effort. I find myself referring back to my own code for the details of the syntax, but that's just because it's still new; these things will become muscle memory soon enough.
+
+Like when using gates, recursion evokes similar feelings for me in terms of the layout, mostly because of the lack of the familiar function declaration and body layout found almost everywhere else; both gated functions and recursive functions have unique layouts in comparison, though both have completely different capabilities and meanings as you know.
+
+```Haskell
+-- | Assures that each digit in a list is equal or greater than the previous
+fixup :: [Int] -> [Int]
+fixup [] = []
+fixup [n] = [n]
+fixup (n1:n2:n3:rest) | n2 < n1 = n1 : fixup (n1:n1:rest)
+fixup [n1,n2] | n2 < n1 = [n1,n1] 
+fixup (n1:rest) = n1 : fixup rest
+```
+
+
+F# of course allows recursion, but it often feels like an antipattern if there's any other way to get the job done. Haskell feels much more welcoming wrt recursion.
+
 ## Day 07 Part 2
 Missed several days of not taking. I'll catch up soon...
 Day 07 part 2 was tough - I made it tougher than it had to be - dumb mistake, not reading carefully enough. Oh well lesson learned. More notes soon...
@@ -92,3 +124,5 @@ Day 07 part 2 was tough - I made it tougher than it had to be - dumb mistake, no
 ## References
 * [Stack](https://docs.haskellstack.org/en/stable/GUIDE) - build system & all around `nvm` like capabilities ... read the docs to get the whole picture.
 * Using [QuasiQuoter](http://hackage.haskell.org/package/string-qq) ([Source](git://github.com/audreyt/string-qq)) to allow multi-line strings. I'm just learning Haskell, but it appears that language extensions / macros are possible, and that's how this thing is made to work.
+
+**Note to self**: Haskel Advent of Code 2019 is under my twitter login, and the F# version is under my Google login.
