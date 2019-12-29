@@ -115,7 +115,7 @@ fixup (n1:rest) = n1 : fixup rest
 
 F# of course allows recursion, but it often feels like an antipattern if there's any other way to get the job done. Haskell feels much more welcoming wrt recursion.
 
-## [Day 05](https://adventofcode.com/2019/day/4)
+## [Day 05](https://adventofcode.com/2019/day/5)
 _I've revisited day 5 a couple of times as required by subsequent days_
 
 Day 5 is when it starts getting really fun. The IntCode computer from day 2 starts getting enhanced. This happens here and also subsequent days. The first enhancement is adding opcodes for input and output. I completely start over from `Day02.hs` with `Day05.hs` The first difference is that we have more opcodes:
@@ -145,11 +145,11 @@ data World = World { ins     :: [Int]
 `[Int]` implement the input and output streams, `Memory` is an alias for `[Int]` which comes in handly later when we change memory implementation. Besides that all that's left is the offset, which points to the next instruction to be executed. The `run` function recursively evaluates the next statement against the state of the world, getting a new world back, and a directive to either halt or continue. 
 
 ```Haskell
-    run :: World -> World
-    run world =
-        case eval world (addrToStatement world) of
-            (world', True) -> run world'
-            (world', False) -> world
+run :: World -> World
+run world =
+    case eval world (addrToStatement world) of
+        (world', True) -> run world'
+        (world', False) -> world
 ```
 
 `eval` is now a case function that delegates to the code to run particular opcodes (Note that Day 5 part 2 added even more opcodes for jumping to addresses, and doing boolean comparisons for equals and less than).
@@ -186,10 +186,19 @@ binOp world op params =
 
 There's more to it - check the source. Working on the IntCode computer is a lot of fun and I'm enjoying it when we're asked to return to it an enhance it. This happens in Day 7 and Day 9 (writing this after Day 10) again so far, I'm sure they'll continue to revisit it.
 
+## [Day 06](https://adventofcode.com/2019/day/6)
+Part 1 was one of the easier ones (see the description). It basically invovled summing the counts of edges from every node in a tree back to the root. It got worse...
 
-## Day 07 Part 2
-Missed several days of not taking. I'll catch up soon...
-Day 07 part 2 was tough - I made it tougher than it had to be - dumb mistake, not reading carefully enough. Oh well lesson learned. More notes soon...
+Part 2 asks you to find a path from one leaf node to another in a tree. My implementation used two mutially recursive functions to get the job done. First one moves to a new node, and the second one looks at all the possible nodes that can be moved to from a particular node. The narrative would be something like this:
+* `findCandidates` - From a node assume it's on the path. Find all the possible paths to take from this node (up or down the tree), and call `checkCandidates` to check them out.
+* `checkCandidates` - For each of those possibilities, exclude nodes that are already on this path (can't double back or cycle). Try to use each candidate as part of the solution by calling `findCandidates` for each.
+
+We start by calling `findCandidates` on the known start of the path. It basically tryies each branch from there, walking down the tree until it proves the path wrong. If it's proved wrong, we back up to the last point where we made a choice about which path to take, mark this one dead, and try the next one.
+
+By threading state through the two recursive functions, we're keeping track of dead ends and used nodes. Eventually we'll come across the solution when we check a node and it's the node that we wanted to find!
+
+## Day 07 
+_I'm actually on day 11, but it's 4:07, I need to sleep! ...to be continued_
 
 ## References
 * [Stack](https://docs.haskellstack.org/en/stable/GUIDE) - build system & all around `nvm` like capabilities ... read the docs to get the whole picture.
