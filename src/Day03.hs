@@ -59,4 +59,3 @@ findSigDelay raw =
       let t1 = board M.! loc  in
       t1 + t2) ints
     minCombLens = minimum combinedLengths
-
