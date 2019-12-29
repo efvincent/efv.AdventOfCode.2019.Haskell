@@ -12,7 +12,7 @@ module Day05 where
             deriving (Show, Enum, Eq)
 
     -- | From an integer that indicates an opcode, get the opcode and the number of parameters expected
-    opOfInt :: Int -> (Op,Int)
+    opOfInt :: (Eq a, Num a, Num b, Show a) => a -> (Op, b)
     opOfInt n = case n of
          1 -> (Add,3)
          2 -> (Mult,3)
