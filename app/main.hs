@@ -2,6 +2,7 @@ import Day01 (part1, part2)
 import Day02 (day2part1, day2part2)
 import Day08 (solve1)
 import Day09
+import Day10
 
 main :: IO ()
 main = do 
