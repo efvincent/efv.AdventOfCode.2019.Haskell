@@ -27,24 +27,24 @@ undigs (n:xs) = n * (10 ^ length xs) + undigs xs
 -- occurence of at least 2 sequential digits
 proc1 :: Int -> Int -> [Int] -> [Int]
 proc1 mx n c
-  | n' > mx = c
-  | isValid = proc1 mx (n'+1) (n':c)
-  | otherwise = proc1 mx (n'+1) c
+    | n' > mx = c
+    | isValid = proc1 mx (n'+1) (n':c)
+    | otherwise = proc1 mx (n'+1) c
   where
-      check = fixup $ digs n
-      n' = undigs check
-      isValid = (maximum . map length . group $ check) >= 2
+    check = fixup $ digs n
+    n' = undigs check
+    isValid = (maximum . map length . group $ check) >= 2
 
 -- | second solution, same as first, except no sequences of equal digits longer than 2
 proc2 :: Int -> Int -> [Int] -> [Int]
 proc2 mx n c
-  | n' > mx = c
-  | isValid = proc2 mx (n'+1) (n':c)
-  | otherwise = proc2 mx (n'+1) c
+    | n' > mx = c
+    | isValid = proc2 mx (n'+1) (n':c)
+    | otherwise = proc2 mx (n'+1) c
   where
-      check = fixup $ digs n
-      n' = undigs check
-      isValid = elem 2 . map length . group $ check
+    check = fixup $ digs n
+    n' = undigs check
+    isValid = elem 2 . map length . group $ check
 
 solution1 = length $ proc1 vmax vmin []
 solution2 = length $ proc2 vmax vmin []
