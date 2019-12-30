@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: e456e2e4697db04e8b9e81e04d43aafa7f266ef2ba0a6df32c29c656b37d80f8
+-- hash: c92af3c72be8fcfd53b008742aa9ecf91099e5cf534e14fcca2edb907fc3a7e3
 
 name:           efv-advent
 version:        0.1.0.0
@@ -16,8 +16,6 @@ maintainer:     example@example.com
 copyright:      2019 Eric Vincent
 license:        BSD3
 build-type:     Simple
-extra-source-files:
-    README.md
 
 source-repository head
   type: git

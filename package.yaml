@@ -6,9 +6,6 @@ author:              "Eric Vincent"
 maintainer:          "example@example.com"
 copyright:           "2019 Eric Vincent"
 
-extra-source-files:
-- README.md
-
 # Metadata used when publishing your package
 # synopsis:            Short description of your package
 # category:            Web
