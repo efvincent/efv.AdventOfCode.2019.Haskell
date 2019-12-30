@@ -27,7 +27,7 @@ module Day05 where
          otherwise -> error ("unknown operand value: " ++ (show n))
 
     -- | Parameter is either a positional type, where the Int is an address, or
-    --   a value type, where the Int is the literal value of the parameter   
+    -- a value type, where the Int is the literal value of the parameter   
     data PosMode = Pos | Immed | Rel deriving (Show)
     itoPosMode i = case i of 0 -> Pos; 1 -> Immed; 2 -> Rel
 
@@ -36,15 +36,15 @@ module Day05 where
     -- | Instruction on obtaining a value either in position mode or immediate mode
     type ValueInstruction = (PosMode, Address)
 
-    -- | A statement consists of an operation and zero or more value instructions. the operation dicates
-    --   how the ValueInstructions will be parsed
+    -- | A statement consists of an operation and zero or more value instructions. 
+    -- the operation dicates how the ValueInstructions will be parsed
     type Statement = (Op, [ValueInstruction])
 
     -- | Computer memory modeled by a list of ints. Not great for perf.
     type Memory = [Integer]
 
-    -- | World has inputs and outputs, a memory, and a current offset which is the pointer to the next instruction
-    --   to be executed
+    -- | World has inputs and outputs, a memory, and a current offset which is the pointer 
+    -- to the next instruction to be executed
     data World = World { ins    :: [Integer]
                        , inWait :: Bool     -- used to indicate suspended awaiting input
                        , outs   :: [Integer]

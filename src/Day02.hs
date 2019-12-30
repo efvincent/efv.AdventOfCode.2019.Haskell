@@ -38,7 +38,7 @@ solve ((v1,v2):xs) target =
     else solve xs target
 
 -- | This can be simplified (pretty sure) once I get to the point of learning
--- | how to use `do` notation and the `Maybe` monad
+-- how to use `do` notation and the `Maybe` monad
 day2part2 = case solve [(x,y) | x <- [0..99], y <- [0..99]] target of
             Just (v1, v2) -> Just (100 * v1 + v2)
             Nothing -> Nothing

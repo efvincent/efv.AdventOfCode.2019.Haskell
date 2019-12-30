@@ -47,7 +47,7 @@ checkCandidates candidates state =
                 states -> Just $ head (sortOn path states)
 
 -- | Assuming the current planet will be part of the solution, find the candidates
---   for the next step. If the current state is the target state, then we're done
+-- for the next step. If the current state is the target state, then we're done
 findCandidates :: State -> Planet -> Maybe State
 findCandidates state current =
     -- Append the current planet to the path
@@ -61,7 +61,7 @@ findCandidates state current =
     (_,Nothing) -> Nothing
 
 -- | Given the raw orbit map, the from planet and the two planet, find the
---   length of the shortest trip
+-- length of the shortest trip
 solve :: String -> String -> String -> Int
 solve raw from to =
     let s = State { path = [], dead = [], to = to, om = makeOrbitMap raw } in

@@ -9,8 +9,8 @@ type Ray2 = (Int, Float, Int, Pos)
 type Vec = (Float, Pos)    -- this is a ray that includes the coordinate of the target node
 
 -- | A "ray" describes the angle from -pi to pi, oriented so that N (up) is -pi, so that
---   when sorted by angle, the ones directly north will come first. After the angle is the
---   "Manhattan" distance, so we can order closest first
+-- when sorted by angle, the ones directly north will come first. After the angle is the
+-- "Manhattan" distance, so we can order closest first
 rayOf :: Pos -> Pos -> Maybe Ray2
 rayOf (tx, ty) (x,y) | x == tx && y == ty = Nothing
 rayOf (tx, ty) (x,y) =
@@ -58,7 +58,7 @@ solve raw =
     counts !! max 0 (length counts - 1)
 
 -- | interleaves list by taking the head of each element in the list repeatedly
---   and concatinating. Ex: [[1,2,3],[4,5],[6,7,8]] -> [1,4,6,2,5,7,3,8] 
+-- and concatinating. Ex: [[1,2,3],[4,5],[6,7,8]] -> [1,4,6,2,5,7,3,8] 
 interleaveLists :: [[a]] -> [a]
 interleaveLists = concat . transpose
 
