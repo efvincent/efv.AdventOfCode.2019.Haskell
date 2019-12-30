@@ -1,34 +1,30 @@
 module Day10 where
 
-import Data.Ratio
-import Data.List (sort, group)
+import Data.List (sort, sortOn, group, groupBy)
+import Data.Maybe (mapMaybe)
 import AdventData (day10ex01,day10ex02,day10ex03,day10ex04,day10ex05,day10)
 
-type IRatio = Ratio Int
-
--- | Indicates the quadrant of a cell relative to a target cell. Qn is quadrant number starting at 1 (top left) 
---   going clockwise. Right and Left indicate cells to the right and left of the target cell, for which
---   a ratio cannot be calculated due to zero denominiator. Since this is effectively a ray out the left and 
---   right, we don't need a ratio, just the direction
-data Ray = Q1 IRatio | Q2 IRatio | Q3 IRatio | Q4 IRatio
-         | R | L | Equal
-         deriving (Show, Eq, Ord)
-
 type Pos = (Int,Int)
-type Grid = [Pos]
+type Ray2 = (Int, Float, Int, Pos)
+type Vec = (Float, Pos)    -- this is a ray that includes the coordinate of the target node
 
-ratio :: Pos -> Pos -> IRatio
-ratio (tx,ty) (x,y) = (x - tx) % (y - ty)
+-- | A "ray" describes the angle from -pi to pi, oriented so that N (up) is -pi, so that
+--   when sorted by angle, the ones directly north will come first. After the angle is the
+--   "Manhattan" distance, so we can order closest first
+rayOf :: Pos -> Pos -> Maybe Ray2
+rayOf (tx, ty) (x,y) | x == tx && y == ty = Nothing
+rayOf (tx, ty) (x,y) =
+    let angle = atan2 (fromIntegral (ty-y)) (fromIntegral (tx-x)) in
+    Just (quadOf angle, angle, (abs (tx+x) + abs (ty+y)), (x,y))
 
--- | Determine the quadrant and ratio of a target cell
-rayOf :: Pos -> Pos -> Ray
-rayOf (tx, ty) (x,y) | x == tx && y == ty = Equal
-rayOf (tx, ty) (x,y) | x <  tx && y == ty = L
-rayOf (tx, ty) (x,y) | x >  tx && y == ty = R
-rayOf (tx, ty) (x,y) | x <= tx && y <  ty = Q1 ((tx,ty) `ratio` (x,y))
-rayOf (tx, ty) (x,y) | x >  tx && y <  ty = Q2 ((tx,ty) `ratio` (x,y))
-rayOf (tx, ty) (x,y) | x >  tx && y >  ty = Q3 ((tx,ty) `ratio` (x,y))
-rayOf (tx, ty) (x,y) | x <= tx && y >  ty = Q4 ((tx,ty) `ratio` (x,y))
+halfPi = pi / 2.0
+twoPi = pi * 2.0
+
+quadOf :: Float -> Int
+quadOf d | d >= halfPi  && d <= pi     = 1
+quadOf d | d >= -pi     && d < -halfPi = 2
+quadOf d | d >= -halfPi && d <= 0.0    = 3
+quadOf d | d > 0        && d <= halfPi = 4
 
 -- | Get list of cells from the raw input from the puzzle
 cellsFromRaw :: String -> [Pos]
@@ -40,19 +36,25 @@ cellsFromRaw raw =
     cellsFromRawRow _ _ [] = []
     cellsFromRawRow y x (c:rest) | c == '#' = (x,y) : cellsFromRawRow y (x+1) rest
     cellsFromRawRow y x (_:rest) = cellsFromRawRow y (x+1) rest
-    
+
     -- | loop over a set of lines
     loop :: Int -> [String] -> [[Pos]]
     loop _ [] = []
     loop y (row:rest) =
         cellsFromRawRow y 0 row : loop (y+1) rest
 
--- | Count number of cells in a grid visible from a given pos
-visCount :: Grid -> Pos -> Int
+-- | Count number of cells in a list of cells visible from a given pos
+visCount :: [Pos] -> Pos -> Int
 visCount grid cell =
-    let rays = map (rayOf cell) grid in
-    length (group . sort $ rays) - 1
+    let rays = map (\(q,a,md,p) -> (q,a)) $ mapMaybe (rayOf cell) grid in
+    length (group . sort $ rays)
 
+laserRays :: [Pos] -> Pos -> [[Ray2]]
+laserRays grid cell =
+    let rays = mapMaybe (rayOf cell) grid in
+    groupBy (\(q,a,_,_) (q',a',_,_) -> (q,a) == (q',a')) $ sort rays
+
+-- day10 = 326
 solve :: String -> Int
 solve raw =
     let g = cellsFromRaw raw in
