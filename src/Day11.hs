@@ -96,9 +96,15 @@ execute state c maxc =
     then execute state'' (c+1) maxc
     else state''
   where
-    w = runWorld (world state) (curColor state)
-    (color:steer:_) = D.outs w
-    state' = (advance . turn steer . paint color) state
+    w = D.run (world state) 
+    outs = D.outs w
+    state' = 
+        if length outs == 2 
+            then
+                let [color,steer] = outs in
+                (advance . turn steer . paint color) state
+            else
+                state
     w' = w { D.outs = [], D.ins = [curColor state'] }
     state'' = state' { world = w' }
     continue =
