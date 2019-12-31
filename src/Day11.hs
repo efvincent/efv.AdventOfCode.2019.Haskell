@@ -6,7 +6,7 @@ import           AdventData (day11)
 import           Debug.Trace
 
 type Pos = (Int,Int)
-type Panel = M.Map Pos [Color]
+type Panel = M.Map Pos (Integer,Int)
 data Dir = N | E | S | W deriving (Show, Eq, Ord, Enum)
 type Color = Integer
 
@@ -64,26 +64,31 @@ paint color state =
   where
     pnl    = panel state
     loc    = position state
-    spot   = M.findWithDefault [] loc pnl
-    color' = if color == 1 || color == 0 then color else 0
-    spot'  = color':spot
-    pnl'   = M.insert loc spot' pnl
+    (_,n)  = M.findWithDefault (0,0) loc pnl
+    pnl'   = M.insert loc (color,n + 1) pnl
 
 curColor :: State -> Color
-curColor s = head $ M.findWithDefault [0] (position s) (panel s)
+curColor s =
+    ccol
+  where
+    (ccol,_) = M.findWithDefault (0,0) (position s) (panel s)
 
 runWorld :: D.World -> Color -> D.World
 runWorld w c =
-    if cont' 
-        then 
+    if cont'
+        then
             if length output >= 2 then w'
             else runWorld w' c
         else w'
   where
-    w' = D.run $ w { D.ins = [c] }
+    w' =
+        -- trace ("ins:" ++ show [c])
+        D.run $ w { D.ins = [c] }
     output = D.outs w'
     cont = D.inWait w'
-    cont' = trace ("outs:" ++ (show output) ++ "  cont:" ++ (show cont)) cont
+    cont' =
+        trace ("outs:" ++ show output ++ "  cont:" ++ show cont)
+        cont
 
 execute :: State -> Int -> Int -> State
 execute state c maxc =
@@ -92,10 +97,14 @@ execute state c maxc =
     else state''
   where
     w = runWorld (world state) (curColor state)
-    (steer:color:_) = D.outs w
-    state' =  (advance . turn steer . paint color) state
+    (color:steer:_) = D.outs w
+    state' = (advance . turn steer . paint color) state
     w' = w { D.outs = [], D.ins = [curColor state'] }
     state'' = state' { world = w' }
-    _ = trace ("outs=" ++ (show $ D.outs w') ++ " ins=" ++ (show $ D.ins w') ++ " panel=" ++ (show $ panel state'')) ()
-    continue = D.inWait w'
-    
+    continue =
+{-       trace ("dir=" ++ show (direction state'')
+          ++ " pos=" ++ show (position state'')
+          ++ " ins=" ++ show (D.ins w')
+          ++ " panel=" ++ show (panel state'')
+          ) -}
+      D.inWait w'
