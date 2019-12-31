@@ -108,9 +108,9 @@ execute state c maxc =
     w' = w { D.outs = [], D.ins = [curColor state'] }
     state'' = state' { world = w' }
     continue =
-{-       trace ("dir=" ++ show (direction state'')
+      trace ("dir=" ++ show (direction state'')
           ++ " pos=" ++ show (position state'')
           ++ " ins=" ++ show (D.ins w')
-          ++ " panel=" ++ show (panel state'')
-          ) -}
+          -- ++ " panel=" ++ show (panel state'')
+          )
       D.inWait w'
