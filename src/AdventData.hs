@@ -5,6 +5,13 @@ module AdventData where
 import Data.Text (Text)
 import Data.String.QQ
 
+-- TODO: Leave this in the original string format, and parse it in code
+day12 :: [(Int,Int,Int)]
+day12 = [(16, -11, 2),
+         (0, -4, 7),
+         (6, 4, -10),
+         (-3, -2, -4)]
+
 day11 :: [Integer]
 day11 = [3,8,1005,8,330,1106,0,11,0,0,0,104,1,104,0,3,8,102,-1,8,10,1001,10,1,10,4,10,1008,
         8,1,10,4,10,101,0,8,29,3,8,102,-1,8,10,1001,10,1,10,4,10,1008,8,0,10,4,10,1001,8,0,51,
