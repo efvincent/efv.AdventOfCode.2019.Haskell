@@ -1,4 +1,4 @@
-module IntCode where
+module IntCode (run, initialWorld, World(..), getOutput, setInput) where
 
     import Data.List (splitAt)
     
