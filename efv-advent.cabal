@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 19d180f5e659fe1535f74a4c0b474a4e3caee176224b9b0e8f2cce8c8a1bfbc0
+-- hash: 3ec3d164d02f9765f352b7bb4002d863dcce078c1a83020e953acca757c71cac
 
 name:           efv-advent
 version:        0.1.0.0
@@ -37,6 +37,7 @@ library
       Day10
       Day11
       Day12
+      IntCode
   other-modules:
       Paths_efv_advent
   hs-source-dirs:
