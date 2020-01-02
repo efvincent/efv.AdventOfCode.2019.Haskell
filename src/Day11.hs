@@ -1,7 +1,8 @@
 module Day11 where
 
 import qualified Data.Map as M
-import qualified Day05 as D
+import           Data.List (sortOn,groupBy)
+import qualified IntCode as IC
 import           AdventData (day11)
 
 type Pos = (Int,Int)
@@ -9,19 +10,19 @@ type Panel = M.Map Pos (Integer,Int)
 data Dir = UP | RIGHT | DOWN | LEFT deriving (Show, Eq, Ord, Enum)
 type Color = Integer
 
-data State = State { world       :: D.World
+data State = State { world       :: IC.World
                    , position    :: Pos
                    , direction   :: Dir
                    , colorNext   :: Bool        -- True -> expecting color output next
                    , panel       :: Panel }
                    deriving (Show)
 
-initState =
-    State { world = D.initialWorld { D.mem = day11 }
+makeState startColor mem =
+    State { world = IC.initialWorld { IC.mem = mem }
           , position = (0,0)
           , direction = UP
           , colorNext = True        -- first we expect color
-          , panel = M.empty }
+          , panel = M.fromList [((0,0),(startColor,0))] }
 
 -- | Turns to a new direction based on a steering value. Steering is expected to be
 -- an integer, but for safety 0 -> left, non-zero -> right
@@ -70,9 +71,9 @@ execute startState =
     then execute updatedState 
     else updatedState
   where
-    postRunWorld = D.run (world startState)
+    postRunWorld = IC.run (world startState)
     (state',inputOp) = 
-        case (D.output postRunWorld,colorNext startState) of
+        case (IC.output postRunWorld,colorNext startState) of
             (Just col, True) -> 
                 (paint col startState, False)
             (Just dir, False) ->
@@ -82,15 +83,46 @@ execute startState =
     updatedState =
         if inputOp then
             -- program paused for an input operation 
-            state' {world = postRunWorld { D.input = Just $ curColor state'
-                                          , D.inWait = False
-                                          , D.output = Nothing }}
+            state' {world = postRunWorld { IC.input = Just $ curColor state'
+                                          , IC.inWait = False
+                                          , IC.output = Nothing }}
         else
             -- progam paused for output operation, which we consumed. We
             -- toggle the next expected output, clear the output from world,
             -- and we're ready to continue
             state' { colorNext = not (colorNext startState) 
-                   , world = postRunWorld { D.output = Nothing 
-                                          , D.inWait = False } }
+                   , world = postRunWorld { IC.output = Nothing 
+                                          , IC.inWait = False } }
                    
-    runnable = not $ D.terminated (world updatedState)
+    runnable = not $ IC.terminated (world updatedState)
+
+replace :: Int -> a -> [a] -> [a]
+replace i e xs = case splitAt i xs of
+    (before, _:after) -> before ++ e : after
+    _ -> xs
+
+drawLine :: Int -> [(Int,Int)] -> String
+drawLine maxx = loop str
+  where
+    str = replicate (maxx + 1) ' '
+    loop s ((x,_):rest) = loop (replace x '*' s) rest
+    loop s [] = s
+
+
+drawPanel :: Bool -> Panel -> String
+drawPanel pos p = 
+    unlines $ map (drawLine maxx) lines
+  where
+    fn = if pos then (==) else (/=)
+    xs = [x | (x,_) <- M.keys p ]
+    ys = [y | (_,y) <- M.keys p ]
+    (minx,miny) = ((minimum xs),(minimum ys))
+    maxx = (maximum xs - minx)
+    coords = sortOn snd $ [(x-minx,y-miny) | ((x,y),(c,_)) <- M.assocs p, fn c 0]
+    lines = groupBy (\(_,y) (_,y') -> y == y') coords
+
+init1 = makeState 0 day11
+init2 = makeState 1 day11
+
+ans1 = length $ panel $ execute (makeState 0 day11)
+ans2 = drawPanel False $ panel $ execute (makeState 1 day11)
