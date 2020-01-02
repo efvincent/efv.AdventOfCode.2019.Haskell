@@ -2,7 +2,6 @@ module Day05 where
 
     import Data.List (splitAt)
     import AdventData (day05)
-    import Debug.Trace
     
 {--------
 | Types |
@@ -45,14 +44,16 @@ module Day05 where
 
     -- | World has inputs and outputs, a memory, and a current offset which is the pointer 
     -- to the next instruction to be executed
-    data World = World { ins    :: [Integer]
-                       , inWait :: Bool     -- used to indicate suspended awaiting input
-                       , outs   :: [Integer]
-                       , mem    :: Memory
-                       , wid    :: Int      -- in 7b, it's useful to know which prog is running
-                       , offset :: Integer
-                       , rbase  :: Integer
-                       } deriving (Show)
+    data World = World { input      :: Maybe Integer
+                       , inWait     :: Bool
+                       , output     :: Maybe Integer
+                       , outWait    :: Bool 
+                       , terminated :: Bool
+                       , mem        :: Memory
+                       , wid        :: Int      -- in 7b, it's useful to know which prog is running
+                       , offset     :: Integer
+                       , rbase      :: Integer
+                       } deriving (Show, Eq)
 
 {----------\
 | Solution |
@@ -60,13 +61,15 @@ module Day05 where
 
     -- | starting state of the world
     initialWorld
-        = World { ins    = [1]
-                , inWait = False
-                , outs   = []
-                , mem    = day05
-                , wid    = 0
-                , rbase  = 0
-                , offset = 0 }
+        = World { input      = Nothing
+                , inWait     = False
+                , outWait    = False 
+                , terminated = False
+                , output     = Nothing
+                , mem        = day05
+                , wid        = 0
+                , rbase      = 0
+                , offset     = 0 }
 
     -- | Similar to the list index operator, except in this application, if you index beyond the 
     --   end of the list, the list is intended to be padded out by zeros. Since this is a read 
@@ -123,23 +126,24 @@ module Day05 where
     --   instruction, return modified world
     readOp :: World -> ValueInstruction -> World
     readOp world vi =
-        if null inputs
-        then world { inWait = True }
-        else
-            world {
-                mem = writeMem (fromInteger addr) (head . ins $ world) (mem world),
-                ins = tail $ ins world,
-                offset = offset world + 2
-            }
-      where
-        inputs = ins world
-        addr = toAddr world vi
+        case input world of
+            Nothing -> world { inWait = True }
+            Just inVal ->
+                let addr = toAddr world vi in
+                world { mem = writeMem (fromInteger addr) inVal (mem world)
+                      , input = Nothing
+                      , inWait = False
+                      , offset = offset world + 2 }
 
-    -- | Write the value found by evaluating the value instruction to the World's output, return modified world
+    -- | Write the value found by evaluating the value instruction to the World's output, 
+    -- return modified world. Note the latest output is at the end of the output list, 
+    -- and the first thing returned is at the head. Readers of output scan just pop the
+    -- head off the list to get the output in the order generated.
     writeOp :: World -> ValueInstruction -> World
     writeOp world param =
         world {
-            outs = (outs world) ++ [toVal world param],
+            output = Just $ toVal world param,
+            outWait = True,
             offset = offset world + 2
         }
 
@@ -149,7 +153,7 @@ module Day05 where
             offset = newOffset
         }
       where
-        (v1,v2) = (toVal world (head params), toVal world (params !! 1))
+        (v1,v2) = (toVal world (params !! 0), toVal world (params !! 1))
         fn = if op == JumpF then (==) else (/=)
         newOffset = if fn v1 0 then v2 else (offset world) + 3
 
@@ -174,32 +178,49 @@ module Day05 where
         }
 
     -- | select appropriate operation evaluator. The return value is the modified world
-    --   and a boolean indicating whether or not the program should continue running. 
-    eval :: World -> Statement -> (World, Bool)
-    eval world (Add,  params) = (binOp world Add  params, True)
-    eval world (Mult, params) = (binOp world Mult params, True)
-    eval world (Outp, (param:[])) = (writeOp world param, True)
-    eval world (JumpF,params) = (jumpOp world JumpF params, True)
-    eval world (JumpT,params) = (jumpOp world JumpT params, True)
-    eval world (Equals,params) = (boolOp world Equals params, True)
-    eval world (LessThan,params) = (boolOp world LessThan params, True)
-    eval world (Terminate, _) = (world, False)
-    eval world (AdjRBase, (param:[])) = (adjRBaseOp world param, True)
-    eval world (Inp, (param:[])) = (w', not $ inWait w')
-      where w' = readOp world param
+    --   and a boolean indicating whether or not the program has halted. 
+    eval :: World -> Statement -> World
+    eval world (Add,  params) = binOp world Add  params
+    eval world (Mult, params) = binOp world Mult params
+    eval world (Outp, (param:[])) = writeOp world param
+    eval world (JumpF,params) = jumpOp world JumpF params
+    eval world (JumpT,params) = jumpOp world JumpT params
+    eval world (Equals,params) = boolOp world Equals params
+    eval world (LessThan,params) = boolOp world LessThan params
+    eval world (Terminate, _) = world { terminated = True }
+    eval world (AdjRBase, (param:[])) = adjRBaseOp world param
+    eval world (Inp, (param:[])) = readOp world param
 
     run :: World -> World
     run world =
-        case eval world (addrToStatement world) of
-            (world', True) -> run world'
-            (world', False) -> world'
-
-    solution1 = run initialWorld
-    solution2 = run initialWorld { ins = [5] }
+        case (evaluatedWorld, stop) of
+            (world', False) -> run world'
+            (world', True)  -> world' 
+      where
+        evaluatedWorld = eval world (addrToStatement world) 
+        halt = terminated evaluatedWorld
+        stop = inWait evaluatedWorld || outWait evaluatedWorld || terminated evaluatedWorld
+    
+    solution1 = run initialWorld { input = Just 1 }
+    solution2 = run initialWorld { input = Just 5 }
 
 {--------------------
 | Utility Functions |
 --------------------}
+
+    -- | Sets the input in the world state machine, clears the
+    -- flag indicating the world is waiting for input
+    setInput :: Integer -> World -> World
+    setInput i world =
+        world { input = Just i
+              , inWait = False }
+
+    -- | Retrieves putput from the world state machine, clears the
+    -- flag indicating the world is awaiting output to be consumed
+    getOutput :: World -> (Maybe Integer, World)
+    getOutput world =
+        (output world, world { output = Nothing
+                             , outWait = False })
 
     -- | Turns an integer into an list of digits
     digs :: Integer -> [Integer]
@@ -223,4 +244,3 @@ module Day05 where
       where
         pad = take (index - (length list) + 1) (repeat 0)
         list' = list ++ pad
-
