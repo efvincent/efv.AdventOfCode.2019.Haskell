@@ -4,6 +4,7 @@ import qualified Data.Map as M
 import           Data.List (sortOn,groupBy)
 import qualified IntCode as IC
 import           AdventData (day11)
+import           Utility
 
 type Pos = (Int,Int)
 type Panel = M.Map Pos (Integer,Int)
@@ -95,11 +96,6 @@ execute startState =
                                           , IC.inWait = False } }
                    
     runnable = not $ IC.terminated (world updatedState)
-
-replace :: Int -> a -> [a] -> [a]
-replace i e xs = case splitAt i xs of
-    (before, _:after) -> before ++ e : after
-    _ -> xs
 
 drawLine :: Int -> [(Int,Int)] -> String
 drawLine maxx = loop str

@@ -2,11 +2,7 @@ module Day02 where
 
 import Data.List (splitAt)
 import AdventData (day02)
-
-replace :: Int -> a -> [a] -> [a]
-replace i e xs = case splitAt i xs of
-    (before, _:after) -> before ++ e : after
-    _ -> xs
+import Utility
 
 -- instructions say to replace posistions 1 and 2
 initMem :: Int -> Int -> [Int]
