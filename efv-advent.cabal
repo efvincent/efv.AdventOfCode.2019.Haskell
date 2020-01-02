@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 3ec3d164d02f9765f352b7bb4002d863dcce078c1a83020e953acca757c71cac
+-- hash: b237a942ff3f4a6edba5d3166f13e2b2304c911900f851ffce158564436ebf46
 
 name:           efv-advent
 version:        0.1.0.0
@@ -29,6 +29,7 @@ library
       Day03
       Day04
       Day05
+      Day05Original
       Day06a
       Day06b
       Day07
