@@ -1,16 +1,19 @@
 module Day09 where
 
-import qualified Day05 as D
+import qualified IntCode as IC
 import AdventData (day09ex01,day09ex02,day09ex03,day09)
+import Day05 (stepThru)
 
-wex01 = D.initialWorld { D.ins = [], D.mem = day09ex01 }
-wex02 = wex01 { D.mem = day09ex02 }
-wex03 = wex01 { D.mem = day09ex03 }
+wex01 = IC.initialWorld { IC.input = Nothing, IC.mem = day09ex01 }
+wex02 = wex01 { IC.mem = day09ex02 }
+wex03 = wex01 { IC.mem = day09ex03 }
 
-solution1 = 
-    let w = D.initialWorld  { D.ins = [1], D.mem = day09 } in
-    D.run w
+solution1 :: IO ()
+solution1 = do
+    let w = IC.initialWorld  { IC.input = Just 1, IC.mem = day09 }
+    stepThru w
 
-solution2 =
-    let w = D.initialWorld  { D.ins = [2], D.mem = day09 } in
-    D.run w
+solution2 :: IO ()
+solution2 = do
+    let w = IC.initialWorld  { IC.input = Just 2, IC.mem = day09 }
+    stepThru w
