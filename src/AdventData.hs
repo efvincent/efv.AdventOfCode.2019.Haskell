@@ -5,6 +5,18 @@ module AdventData where
 import Data.Text (Text)
 import Data.String.QQ
 
+day12ex02 :: [(Int,Int,Int)]
+day12ex02 = [(-8, -10, 0),
+             (5, 5, 10),
+             (2, -7, 3),
+             (9, -8, -3)]
+
+day12ex01 :: [(Int,Int,Int)]
+day12ex01 = [(-1, 0, 2),
+             (2, -10, -7),
+             (4, -8, 8),
+             (3, 5, -1)]
+
 -- TODO: Leave this in the original string format, and parse it in code
 day12 :: [(Int,Int,Int)]
 day12 = [(16, -11, 2),
