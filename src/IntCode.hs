@@ -1,7 +1,7 @@
-module IntCode (run, initialWorld, World(..), getOutput, setInput) where
+module IntCode (run, initialComputer, Computer(..), getOutput, setInput) where
 
     import Data.List (splitAt)
-    
+
 {--------
 | Types |
 --------}
@@ -41,34 +41,34 @@ module IntCode (run, initialWorld, World(..), getOutput, setInput) where
     -- | Computer memory modeled by a list of ints. Not great for perf.
     type Memory = [Integer]
 
-    -- | World has inputs and outputs, a memory, and a current offset which is the pointer 
+    -- | Computer has inputs and outputs, a memory, and a current offset which is the pointer 
     -- to the next instruction to be executed
-    data World = World { input      :: Maybe Integer
-                       , inWait     :: Bool
-                       , output     :: Maybe Integer
-                       , outWait    :: Bool 
-                       , terminated :: Bool
-                       , mem        :: Memory
-                       , wid        :: Int      -- in 7b, it's useful to know which prog is running
-                       , offset     :: Integer
-                       , rbase      :: Integer
-                       } deriving (Show, Eq)
+    data Computer = Computer { input      :: Maybe Integer
+                             , inWait     :: Bool
+                             , output     :: Maybe Integer
+                             , outWait    :: Bool
+                             , terminated :: Bool
+                             , mem        :: Memory
+                             , wid        :: Int      -- in 7b   , it's useful to know which prog is running
+                             , offset     :: Integer
+                             , rbase      :: Integer
+                             } deriving (Show, Eq)
 
 {----------\
 | Solution |
 \----------}
 
-    -- | starting state of the world
-    initialWorld
-        = World { input      = Nothing
-                , inWait     = False
-                , outWait    = False 
-                , terminated = False
-                , output     = Nothing
-                , mem        = []
-                , wid        = 0
-                , rbase      = 0
-                , offset     = 0 }
+    -- | starting state of the computer
+    initialComputer
+        = Computer { input      = Nothing
+                   , inWait     = False
+                   , outWait    = False
+                   , terminated = False
+                   , output     = Nothing
+                   , mem        = []
+                   , wid        = 0
+                   , rbase      = 0
+                   , offset     = 0 }
 
     -- | Similar to the list index operator, except in this application, if you index beyond the 
     --   end of the list, the list is intended to be padded out by zeros. Since this is a read 
@@ -84,138 +84,138 @@ module IntCode (run, initialWorld, World(..), getOutput, setInput) where
     --   immediate: the value instruction is not an address, this is an error in this function
     --   positional: the value represents an address, return the address
     --   relative: the value represents an offset from a relative base. The relative base can be
-    --             found in the world context
-    toAddr :: World -> ValueInstruction -> Integer
+    --             found in the computer context
+    toAddr :: Computer -> ValueInstruction -> Integer
     toAddr _ (Immed, i) = error "Cannot change an immediate mode value instruction to an address"
     toAddr _ (Pos, i) = i
-    toAddr world (Rel, i) = (rbase world) + i
-    
-    -- | Given a world and a value instruction, get the value
-    toVal :: World -> ValueInstruction -> Integer
-    toVal _ (Immed, i) = i
-    toVal world vi = mem world !!! (toAddr world vi)
+    toAddr comp (Rel, i) = (rbase comp) + i
 
-    -- | Get the statement at the next offset in the world 
-    addrToStatement :: World -> Statement
-    addrToStatement world =
+    -- | Given a computer and a value instruction, get the value
+    toVal :: Computer -> ValueInstruction -> Integer
+    toVal _ (Immed, i) = i
+    toVal comp vi = mem comp !!! (toAddr comp vi)
+
+    -- | Get the statement at the next offset in the computer 
+    addrToStatement :: Computer -> Statement
+    addrToStatement comp =
         (op, zip modes raws)
         where
-            raw = mem world !!! (offset world)
+            raw = mem comp !!! (offset comp)
             ds =
                 let d = digs raw in
                 if length d < 5 then (take (5 - length d) $ repeat 0) ++ d else d
             l = length ds
             (op,nParams) = opOfInt . undigs $ drop (l - 2) ds
             modes = [itoPosMode (ds !!(l - 3 - p)) | p <- [0..nParams-1]]
-            raws = take (length modes) $ drop (fromInteger $ offset world + 1) (mem world)
+            raws = take (length modes) $ drop (fromInteger $ offset comp + 1) (mem comp)
 
-    -- | Evaluate the binary operation operation, return a modified world
-    binOp :: World -> Op -> [ValueInstruction] -> World
-    binOp world op params =
-        world {
-            mem = writeMem (fromInteger resultAddr) (fn v1 v2) (mem world),
-            offset = offset world + 4
+    -- | Evaluate the binary operation operation, return a modified computer
+    binOp :: Computer -> Op -> [ValueInstruction] -> Computer
+    binOp comp op params =
+        comp {
+            mem = writeMem (fromInteger resultAddr) (fn v1 v2) (mem comp),
+            offset = offset comp + 4
         }
       where
-        resultAddr = toAddr world $ params !! 2
+        resultAddr = toAddr comp $ params !! 2
         fn = case op of Add -> (+); Mult -> (*)
-        (v1, v2) = (toVal world (head params), toVal world (params !! 1))
+        (v1, v2) = (toVal comp (head params), toVal comp (params !! 1))
 
-    -- | Read from the World's inputs, write it to the target indicated by the value 
-    --   instruction, return modified world
-    readOp :: World -> ValueInstruction -> World
-    readOp world vi =
-        case input world of
-            Nothing -> world { inWait = True }
+    -- | Read from the Computer's inputs, write it to the target indicated by the value 
+    --   instruction, return modified computer
+    readOp :: Computer -> ValueInstruction -> Computer
+    readOp comp vi =
+        case input comp of
+            Nothing -> comp { inWait = True }
             Just inVal ->
-                let addr = toAddr world vi in
-                world { mem = writeMem (fromInteger addr) inVal (mem world)
+                let addr = toAddr comp vi in
+                comp { mem = writeMem (fromInteger addr) inVal (mem comp)
                       , input = Nothing
                       , inWait = False
-                      , offset = offset world + 2 }
+                      , offset = offset comp + 2 }
 
-    -- | Write the value found by evaluating the value instruction to the World's output, 
-    -- return modified world. Note the latest output is at the end of the output list, 
+    -- | Write the value found by evaluating the value instruction to the Computer's output, 
+    -- return modified computer. Note the latest output is at the end of the output list, 
     -- and the first thing returned is at the head. Readers of output scan just pop the
     -- head off the list to get the output in the order generated.
-    writeOp :: World -> ValueInstruction -> World
-    writeOp world param =
-        world {
-            output = Just $ toVal world param,
+    writeOp :: Computer -> ValueInstruction -> Computer
+    writeOp comp param =
+        comp {
+            output = Just $ toVal comp param,
             outWait = True,
-            offset = offset world + 2
+            offset = offset comp + 2
         }
 
-    jumpOp :: World -> Op -> [ValueInstruction] -> World
-    jumpOp world op params =
-        world {
+    jumpOp :: Computer -> Op -> [ValueInstruction] -> Computer
+    jumpOp comp op params =
+        comp {
             offset = newOffset
         }
       where
-        (v1,v2)   = (toVal world (params !! 0), toVal world (params !! 1))
+        (v1,v2)   = (toVal comp (params !! 0), toVal comp (params !! 1))
         fn        = if op == JumpF then (==) else (/=)
-        newOffset = if fn v1 0 then v2 else (offset world) + 3
+        newOffset = if fn v1 0 then v2 else (offset comp) + 3
 
-    boolOp :: World -> Op -> [ValueInstruction] -> World
-    boolOp world op params =
-        world {
-            mem    = writeMem addr newVal (mem world),
-            offset = offset world + 4
+    boolOp :: Computer -> Op -> [ValueInstruction] -> Computer
+    boolOp comp op params =
+        comp {
+            mem    = writeMem addr newVal (mem comp),
+            offset = offset comp + 4
         }
         where
-        (v1,v2) = (toVal world (head params), toVal world (params !! 1))
-        addr    = fromInteger $ toAddr world (params !! 2)
+        (v1,v2) = (toVal comp (head params), toVal comp (params !! 1))
+        addr    = fromInteger $ toAddr comp (params !! 2)
         fn      = if op == Equals then (==) else (<)
         newVal  = if fn v1 v2 then 1 else 0
 
-    adjRBaseOp :: World -> ValueInstruction -> World
-    adjRBaseOp world vi =
-        let rb = rbase world + (toVal world vi) in
-        world { 
-            rbase = rb, 
-            offset = offset world + 2 
+    adjRBaseOp :: Computer -> ValueInstruction -> Computer
+    adjRBaseOp comp vi =
+        let rb = rbase comp + (toVal comp vi) in
+        comp {
+            rbase = rb,
+            offset = offset comp + 2
         }
 
-    -- | select appropriate operation evaluator. The return value is the modified world
+    -- | select appropriate operation evaluator. The return value is the modified computer
     --   and a boolean indicating whether or not the program has halted. 
-    eval :: World -> Statement -> World
-    eval world (Inp, (param:[]))      = readOp world param
-    eval world (Outp, (param:[]))     = writeOp world param
-    eval world (Add,  params)         = binOp world Add  params
-    eval world (Mult, params)         = binOp world Mult params
-    eval world (JumpF,params)         = jumpOp world JumpF params
-    eval world (JumpT,params)         = jumpOp world JumpT params
-    eval world (Equals,params)        = boolOp world Equals params
-    eval world (LessThan,params)      = boolOp world LessThan params
-    eval world (AdjRBase, (param:[])) = adjRBaseOp world param
-    eval world (Terminate, _)         = world { terminated = True }
+    eval :: Computer -> Statement -> Computer
+    eval comp (Inp, (param:[]))      = readOp comp param
+    eval comp (Outp, (param:[]))     = writeOp comp param
+    eval comp (Add,  params)         = binOp comp Add  params
+    eval comp (Mult, params)         = binOp comp Mult params
+    eval comp (JumpF,params)         = jumpOp comp JumpF params
+    eval comp (JumpT,params)         = jumpOp comp JumpT params
+    eval comp (Equals,params)        = boolOp comp Equals params
+    eval comp (LessThan,params)      = boolOp comp LessThan params
+    eval comp (AdjRBase, (param:[])) = adjRBaseOp comp param
+    eval comp (Terminate, _)         = comp { terminated = True }
 
-    run :: World -> World
-    run world =
-        case (evaluatedWorld, stop) of
-            (world', False) -> run world'
-            (world', True)  -> world' 
+    run :: Computer -> Computer
+    run comp =
+        case (evaluatedComputer, stop) of
+            (comp', False) -> run comp'
+            (comp', True)  -> comp'
       where
-        evaluatedWorld = eval world (addrToStatement world) 
-        halt = terminated evaluatedWorld
-        stop = inWait evaluatedWorld || outWait evaluatedWorld || terminated evaluatedWorld
+        evaluatedComputer = eval comp (addrToStatement comp)
+        halt = terminated evaluatedComputer
+        stop = inWait evaluatedComputer || outWait evaluatedComputer || terminated evaluatedComputer
 
 {--------------------
 | Utility Functions |
 --------------------}
 
-    -- | Sets the input in the world state machine, clears the
-    -- flag indicating the world is waiting for input
-    setInput :: Integer -> World -> World
-    setInput i world =
-        world { input = Just i
+    -- | Sets the input in the computer state, clears the
+    -- flag indicating the computer is waiting for input
+    setInput :: Integer -> Computer -> Computer
+    setInput i comp =
+        comp { input = Just i
               , inWait = False }
 
-    -- | Retrieves putput from the world state machine, clears the
-    -- flag indicating the world is awaiting output to be consumed
-    getOutput :: World -> (Maybe Integer, World)
-    getOutput world =
-        (output world, world { output = Nothing
+    -- | Retrieves putput from the computer state, clears the
+    -- flag indicating the computer is awaiting output to be consumed
+    getOutput :: Computer -> (Maybe Integer, Computer)
+    getOutput comp =
+        (output comp, comp { output = Nothing
                              , outWait = False })
 
     -- | Turns an integer into an list of digits

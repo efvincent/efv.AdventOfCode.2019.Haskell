@@ -3,11 +3,11 @@ module Day05 where
 import AdventData (day05)
 import IntCode
 
-world = initialWorld { mem = day05 }
+computer = initialComputer { mem = day05 }
 
-stepThru :: World -> IO ()
-stepThru world = do
-    let w = run world
+stepThru :: Computer -> IO ()
+stepThru comp = do
+    let w = run comp
     case (terminated w, outWait w) of
         (False, True) ->
             do 
@@ -18,5 +18,5 @@ stepThru world = do
 
 solveD5::IO() 
 solveD5 = do
-    stepThru $ world { input = Just 1 }
-    stepThru $ world { input = Just 5 }
+    stepThru $ computer { input = Just 1 }
+    stepThru $ computer { input = Just 5 }

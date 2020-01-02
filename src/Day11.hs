@@ -10,7 +10,7 @@ type Panel = M.Map Pos (Integer,Int)
 data Dir = UP | RIGHT | DOWN | LEFT deriving (Show, Eq, Ord, Enum)
 type Color = Integer
 
-data State = State { world       :: IC.World
+data State = State { world       :: IC.Computer
                    , position    :: Pos
                    , direction   :: Dir
                    , colorNext   :: Bool        -- True -> expecting color output next
@@ -18,7 +18,7 @@ data State = State { world       :: IC.World
                    deriving (Show)
 
 makeState startColor mem =
-    State { world = IC.initialWorld { IC.mem = mem }
+    State { world = IC.initialComputer { IC.mem = mem }
           , position = (0,0)
           , direction = UP
           , colorNext = True        -- first we expect color
