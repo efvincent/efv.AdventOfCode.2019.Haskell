@@ -2,34 +2,36 @@ module Day07 where
 
 import           AdventData (day07,day07ex01,day07ex02,day07ex03,day07bex01,day07bex02)
 import           Data.List (permutations)
-import qualified Day05 as D
+import qualified IntCode as IC
 
-progSets :: [Integer] -> Integer -> Integer -> [[D.World]]
+progSets :: [Integer] -> Integer -> Integer -> [[IC.World]]
 progSets mem n1 n2 =
     map makeProgSet $ permutations [n1..n2]
   where
-    makeProgSet :: [Integer] -> [D.World]
+    makeProgSet :: [Integer] -> [IC.World]
     makeProgSet settings =
       let idxSettings = zip [0..] settings in 
       map makeWorld idxSettings
 
-    makeWorld :: (Int, Integer) -> D.World
+    makeWorld :: (Int, Integer) -> IC.World
     makeWorld (wid, w) =
-        D.World { D.ins = [w]
-                , D.outs = []
-                , D.mem = mem
-                , D.inWait = False
-                , D.wid = wid
-                , D.rbase = 0
-                , D.offset = 0 }
+        IC.World { IC.input = Just w
+                 , IC.output = Nothing
+                 , IC.mem = mem
+                 , IC.inWait = False
+                 , IC.wid = wid
+                 , IC.rbase = 0
+                 , IC.offset = 0 }
 
-runSeries :: Integer -> [D.World] -> Integer
+runSeries :: Maybe Integer -> [IC.World] -> Maybe Integer
 runSeries sig (w:ws) =
     case ws of
         [] -> res
         remaining -> runSeries res remaining
   where
-    res = head $ D.outs $ D.run w { D.ins = D.ins w ++ [sig]}
+    res = case sig of
+      Just s ->  IC.getOutput $ IC.run (IC.setInput s w)
+      Nothing -> error "no signal to pass on"
 
 ansEx01 = maximum $ map (runSeries 0) (progSets day07ex01 0 4)
 ansEx02 = maximum $ map (runSeries 0) (progSets day07ex02 0 4)
@@ -41,31 +43,31 @@ ans     = maximum $ map (runSeries 0) (progSets day07 0 4)
 -- get a non inWait termination. That output is the answer
 
 -- run one progset
-runProgSet :: [D.World] -> Integer
+runProgSet :: [IC.World] -> Integer
 runProgSet = loop Nothing
   where
-    loop :: Maybe D.World -> [D.World] -> Integer
+    loop :: Maybe IC.World -> [IC.World] -> Integer
     loop (Just prev) (next:rest) =
         -- In the case where there was a pervious run, use it's output
         -- as the input to the current one. Also, push the last one at
         -- the end of the queue
-        if resWaiting || ((D.wid result') /= 4)
+        if resWaiting || ((IC.wid result') /= 4)
         then loop (Just result') rest'
-        else head $ D.outs result
+        else head $ IC.output result
       where
-        next' = next { D.ins = (D.ins next) ++ D.outs prev } -- Feed next with out of prev
-        prev' = prev { D.outs = [] }                 -- Clear out the prev's output
+        next' = next { IC.input = (IC.input next) ++ IC.output prev } -- Feed next with out of prev
+        prev' = prev { IC.output = [] }                 -- Clear out the prev's output
         rest' = rest ++ [prev']                      -- Put the prev at the end of the queue
-        result = D.run next'
-        resWaiting = D.inWait result
-        result' = result { D.inWait = False }
+        result = IC.run next'
+        resWaiting = IC.inWait result
+        result' = result { IC.inWait = False }
     loop Nothing (first:rest) =
         -- First time through the loop there is no previous, we'll seed and run the head of the list
         -- with a zero signal, and continue the loop 
         loop (Just result) rest
       where
-        first' = first { D.ins = D.ins first ++ [0] }
-        result = D.run first' { D.inWait = False }
+        first' = first { IC.input = IC.input first ++ [0] }
+        result = IC.run first' { IC.inWait = False }
 
 solve :: [Integer] -> Integer
 solve prog =
