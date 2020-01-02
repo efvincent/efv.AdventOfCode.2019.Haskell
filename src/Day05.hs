@@ -16,7 +16,7 @@ stepThru world = do
                 stepThru w
         (True, _) -> print "Complete"
 
-main::IO() 
-main = do
+solveD5::IO() 
+solveD5 = do
     stepThru $ world { input = Just 1 }
     stepThru $ world { input = Just 5 }
