@@ -3,32 +3,24 @@ module Day11 where
 import qualified Data.Map as M
 import qualified Day05 as D
 import           AdventData (day11)
-import           Debug.Trace
 
 type Pos = (Int,Int)
 type Panel = M.Map Pos (Integer,Int)
-data Dir = N | E | S | W deriving (Show, Eq, Ord, Enum)
+data Dir = UP | RIGHT | DOWN | LEFT deriving (Show, Eq, Ord, Enum)
 type Color = Integer
 
 data State = State { world       :: D.World
                    , position    :: Pos
                    , direction   :: Dir
+                   , colorNext   :: Bool        -- True -> expecting color output next
                    , panel       :: Panel }
                    deriving (Show)
 
-initWorld =
-    D.World { D.ins    = []
-            , D.inWait = False
-            , D.outs   = []
-            , D.mem    = day11
-            , D.wid    = 0
-            , D.rbase  = 0
-            , D.offset = 0 }
-
 initState =
-    State { world = initWorld
+    State { world = D.initialWorld { D.mem = day11 }
           , position = (0,0)
-          , direction = N
+          , direction = UP
+          , colorNext = True        -- first we expect color
           , panel = M.empty }
 
 -- | Turns to a new direction based on a steering value. Steering is expected to be
@@ -39,9 +31,9 @@ turn steer state =
   where
     d = direction state
     trn :: Dir -> Integer -> Dir
-    trn d 0 | d == N = W
+    trn d 0 | d == UP = LEFT
     trn d 0 = pred d
-    trn d _ | d == W = N
+    trn d _ | d == LEFT = UP
     trn d _ = succ d
 
 -- | Advance the position according to the current direction
@@ -52,10 +44,10 @@ advance state =
     pos = position state
     dir = direction state
     adv :: Dir -> Pos -> Pos
-    adv N (x,y) = (x,y-1)
-    adv E (x,y) = (x+1,y)
-    adv S (x,y) = (x,y+1)
-    adv W (x,y) = (x-1,y)
+    adv UP (x,y) = (x,y-1)
+    adv RIGHT (x,y) = (x+1,y)
+    adv DOWN (x,y) = (x,y+1)
+    adv LEFT (x,y) = (x-1,y)
 
 -- | Paints the panel the selected color at the current position
 paint :: Color -> State -> State
@@ -67,44 +59,38 @@ paint color state =
     (_,n)  = M.findWithDefault (0,0) loc pnl
     pnl'   = M.insert loc (color,n + 1) pnl
 
+-- Gets the current color from state
 curColor :: State -> Color
-curColor s =
-    ccol
-  where
-    (ccol,_) = M.findWithDefault (0,0) (position s) (panel s)
+curColor s = ccol
+  where (ccol,_) = M.findWithDefault (0,0) (position s) (panel s)
 
-runWorld :: D.World -> Color -> D.World
-runWorld w c =
-    if cont'
-        then
-            if length output >= 2 then w'
-            else runWorld w' c
-        else w'
+execute :: State -> State
+execute startState =
+    if runnable 
+    then execute updatedState 
+    else updatedState
   where
-    w' =
-        -- trace ("ins:" ++ show [c])
-        D.run $ w { D.ins = [c] }
-    output = D.outs w'
-    cont = D.inWait w'
-    cont' =
-        trace ("outs:" ++ show output ++ "  cont:" ++ show cont)
-        cont
+    postRunWorld = D.run (world startState)
+    (state',inputOp) = 
+        case (D.output postRunWorld,colorNext startState) of
+            (Just col, True) -> 
+                (paint col startState, False)
+            (Just dir, False) ->
+                ((advance . turn dir) startState, False)
+            (Nothing,_) -> (startState, True) -- we're not expecting to consume output
 
-execute :: State -> Int -> Int -> State
-execute state c maxc =
-    if continue && c < maxc
-    then execute state'' (c+1) maxc
-    else state''
-  where
-    w = runWorld (world state) (curColor state)
-    (color:steer:_) = D.outs w
-    state' = (advance . turn steer . paint color) state
-    w' = w { D.outs = [], D.ins = [curColor state'] }
-    state'' = state' { world = w' }
-    continue =
-{-       trace ("dir=" ++ show (direction state'')
-          ++ " pos=" ++ show (position state'')
-          ++ " ins=" ++ show (D.ins w')
-          ++ " panel=" ++ show (panel state'')
-          ) -}
-      D.inWait w'
+    updatedState =
+        if inputOp then
+            -- program paused for an input operation 
+            state' {world = postRunWorld { D.input = Just $ curColor state'
+                                          , D.inWait = False
+                                          , D.output = Nothing }}
+        else
+            -- progam paused for output operation, which we consumed. We
+            -- toggle the next expected output, clear the output from world,
+            -- and we're ready to continue
+            state' { colorNext = not (colorNext startState) 
+                   , world = postRunWorld { D.output = Nothing 
+                                          , D.inWait = False } }
+                   
+    runnable = not $ D.terminated (world updatedState)
