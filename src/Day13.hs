@@ -27,7 +27,7 @@ data GameState = GameState { tiles  :: M.Map Pos Tile
 
 initGame = GameState { tiles   = M.empty
                      , score   = 0
-                     , comp    = initialComputer { mem = day13 }
+                     , comp    = setMemory initialComputer day13
                      , ballX   = 0
                      , paddleX = 0
                      , buffer  = [] }
@@ -47,7 +47,7 @@ runGame gs =
              d | d > 0 ->  1
              d | d < 0 -> -1
              _         ->  0 in
-        runGame $ gs { comp = setInput inp (comp gs) }
+        runGame $ gs { comp = setInput (comp gs) inp }
     else
         error "no output, and not terminated... wtf?"
 
@@ -77,5 +77,4 @@ solve_d13_2 =
     score $ runGame gs'
   where
     gs  = initGame
-    c   = comp gs
-    gs' = gs { comp = c { mem = replace 0 2 (mem c) } }
+    gs' = gs { comp = setMemoryAt (comp gs) 0 2 }

@@ -19,7 +19,7 @@ data State = State { world       :: IC.Computer
                    deriving (Show)
 
 makeState startColor mem =
-    State { world = IC.initialComputer { IC.mem = mem }
+    State { world = IC.setMemory IC.initialComputer mem
           , position = (0,0)
           , direction = UP
           , colorNext = True        -- first we expect color
@@ -72,28 +72,24 @@ execute startState =
     then execute updatedState 
     else updatedState
   where
-    postRunWorld = IC.run (world startState)
-    (state',inputOp) = 
-        case (IC.output postRunWorld,colorNext startState) of
-            (Just col, True) -> 
-                (paint col startState, False)
-            (Just dir, False) ->
-                ((advance . turn dir) startState, False)
-            (Nothing,_) -> (startState, True) -- we're not expecting to consume output
+    (state', inputOp, postRunWorld) = 
+        case (IC.getOutput (IC.run (world startState)), colorNext startState) of
+            ((Just col, w), True) -> 
+                (paint col startState, False, w)
+            ((Just dir, w), False) ->
+                ((advance . turn dir) startState, False, w)
+            ((Nothing,w),_) -> (startState, True, w) -- we're not expecting to consume output
 
     updatedState =
         if inputOp then
             -- program paused for an input operation 
-            state' {world = postRunWorld { IC.input = Just $ curColor state'
-                                          , IC.inWait = False
-                                          , IC.output = Nothing }}
+            state' {world = IC.setInput postRunWorld $ curColor state' }
         else
             -- progam paused for output operation, which we consumed. We
             -- toggle the next expected output, clear the output from world,
             -- and we're ready to continue
             state' { colorNext = not (colorNext startState) 
-                   , world = postRunWorld { IC.output = Nothing 
-                                          , IC.inWait = False } }
+                   , world = postRunWorld }
                    
     runnable = not $ IC.terminated (world updatedState)
 

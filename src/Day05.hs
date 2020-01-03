@@ -3,10 +3,10 @@ module Day05 where
 import AdventData (day05)
 import IntCode
 
-computer = initialComputer { mem = day05 }
+computer = setMemory initialComputer day05
 
-stepThru :: Computer -> IO ()
-stepThru comp = do
+stepThru' :: Computer -> IO ()
+stepThru' comp = do
     let w = run comp
     case (terminated w, outWait w) of
         (False, True) ->
@@ -18,5 +18,5 @@ stepThru comp = do
 
 solveD5::IO() 
 solveD5 = do
-    stepThru $ computer { input = Just 1 }
-    stepThru $ computer { input = Just 5 }
+    stepThru $ setInput computer 1
+    stepThru $ setInput computer 5

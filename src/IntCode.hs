@@ -1,6 +1,14 @@
-module IntCode (run, initialComputer, Computer(..), getOutput, setInput) where
+module IntCode ( run
+               , initialComputer
+               , Computer(inWait,outWait,terminated)
+               , stepThru
+               , getOutput
+               , setInput
+               , setMemory
+               , setMemoryAt) where
 
     import Data.List (splitAt)
+    import Utility 
 
 {--------
 | Types |
@@ -206,8 +214,8 @@ module IntCode (run, initialComputer, Computer(..), getOutput, setInput) where
 
     -- | Sets the input in the computer state, clears the
     -- flag indicating the computer is waiting for input
-    setInput :: Integer -> Computer -> Computer
-    setInput i comp =
+    setInput :: Computer -> Integer -> Computer
+    setInput comp i =
         comp { input = Just i
               , inWait = False }
 
@@ -217,6 +225,26 @@ module IntCode (run, initialComputer, Computer(..), getOutput, setInput) where
     getOutput comp =
         (output comp, comp { output = Nothing
                              , outWait = False })
+
+    setMemory :: Computer -> Memory -> Computer
+    setMemory comp m = comp { mem = m}
+
+    setMemoryAt :: Computer -> Int -> Integer -> Computer
+    setMemoryAt comp location value =
+        let m = mem comp in
+        let m' = replace location value m in
+        setMemory comp m'
+
+    stepThru :: Computer -> IO ()
+    stepThru comp = do
+        let w = run comp
+        case (terminated w, outWait w) of
+            (False, True) ->
+                do 
+                    let (out, w') = getOutput w
+                    print out
+                    stepThru w
+            (True, _) -> print "Complete"
 
     -- | Turns an integer into an list of digits
     digs :: Integer -> [Integer]
