@@ -1,6 +1,6 @@
 module Day12 where
 
-import AdventData (day12, day12ex01, day12ex02)
+import           AdventData (day12, day12ex01, day12ex02)
 
 type Vec3 = (Int,Int,Int)
 data Dim = X | Y | Z
@@ -29,7 +29,7 @@ extractAndGroup xs = map (\x -> (x, [x' | x' <- xs, x' /= x])) xs
 adjustDim :: Int -> Int -> Int -> Int
 adjustDim v p po | p - po >  0 = v - 1
 adjustDim v p po | p - po <  0 = v + 1
-adjustDim v p po               = v
+adjustDim v p po = v
 
 adjustVel :: Planet -> Planet -> Planet
 adjustVel p po =

@@ -1,8 +1,8 @@
 module Day05Original where
 
-import AdventData (day05)
-import Data.List (splitAt)
-import Debug.Trace
+import           AdventData  (day05)
+import           Data.List   (splitAt)
+import           Debug.Trace
 
 data Op
     = Add
@@ -21,20 +21,20 @@ data Op
 opOfInt :: (Eq a, Num a, Num b, Show a) => a -> (Op, b)
 opOfInt n =
     case n of
-        1 -> (Add, 3)
-        2 -> (Mult, 3)
-        3 -> (Inp, 1)
-        4 -> (Outp, 1)
-        5 -> (JumpT, 2)
-        6 -> (JumpF, 2)
-        7 -> (LessThan, 3)
-        8 -> (Equals, 3)
-        9 -> (AdjRBase, 1)
+        1  -> (Add, 3)
+        2  -> (Mult, 3)
+        3  -> (Inp, 1)
+        4  -> (Outp, 1)
+        5  -> (JumpT, 2)
+        6  -> (JumpF, 2)
+        7  -> (LessThan, 3)
+        8  -> (Equals, 3)
+        9  -> (AdjRBase, 1)
         99 -> (Terminate, 0)
-        _ -> error ("unknown operand value: " ++ show n)
+        _  -> error ("unknown operand value: " ++ show n)
 
 -- | Parameter is either a positional type, where the Int is an address, or
--- a value type, where the Int is the literal value of the parameter   
+-- a value type, where the Int is the literal value of the parameter
 data PosMode
     = Pos
     | Immed
@@ -52,24 +52,24 @@ type Address = Integer
 -- | Instruction on obtaining a value either in position mode or immediate mode
 type ValueInstruction = (PosMode, Address)
 
--- | A statement consists of an operation and zero or more value instructions. 
+-- | A statement consists of an operation and zero or more value instructions.
 -- the operation dicates how the ValueInstructions will be parsed
 type Statement = (Op, [ValueInstruction])
 
 -- | Computer memory modeled by a list of ints. Not great for perf.
 type Memory = [Integer]
 
--- | World has inputs and outputs, a memory, and a current offset which is the pointer 
+-- | World has inputs and outputs, a memory, and a current offset which is the pointer
 -- to the next instruction to be executed
 data World =
     World
-        { ins :: [Integer]
+        { ins    :: [Integer]
         , inWait :: Bool -- used to indicate suspended awaiting input
-        , outs :: [Integer]
-        , mem :: Memory
-        , wid :: Int -- in 7b, it's useful to know which prog is running
+        , outs   :: [Integer]
+        , mem    :: Memory
+        , wid    :: Int -- in 7b, it's useful to know which prog is running
         , offset :: Integer
-        , rbase :: Integer
+        , rbase  :: Integer
         }
     deriving (Show)
 
@@ -77,8 +77,8 @@ data World =
 initialWorld =
     World {ins = [1], inWait = False, outs = [], mem = day05, wid = 0, rbase = 0, offset = 0}
 
--- | Similar to the list index operator, except in this application, if you index beyond the 
---   end of the list, the list is intended to be padded out by zeros. Since this is a read 
+-- | Similar to the list index operator, except in this application, if you index beyond the
+--   end of the list, the list is intended to be padded out by zeros. Since this is a read
 --   operation asking for a location that would be padded, then we send them the default of
 --   zero, even though we haven't padded memory.
 (!!!) :: Memory -> Integer -> Integer
@@ -100,8 +100,8 @@ toAddr world (Rel, i) = rbase world + i
 
 toVal :: World -> ValueInstruction -> Integer
 toVal _ (Immed, i) = i
-toVal world vi = mem world !!! toAddr world vi
-    -- | Get the statement at the next offset in the world 
+toVal world vi     = mem world !!! toAddr world vi
+    -- | Get the statement at the next offset in the world
 
 addrToStatement :: World -> Statement
 addrToStatement world = (op, zip modes raws)
@@ -126,11 +126,11 @@ binOp world op params =
     resultAddr = toAddr world $ params !! 2
     fn =
         case op of
-            Add -> (+)
+            Add  -> (+)
             Mult -> (*)
     (v1, v2) = (toVal world (head params), toVal world (params !! 1))
 
--- | Read from the World's inputs, write it to the target indicated by the value 
+-- | Read from the World's inputs, write it to the target indicated by the value
 --   instruction, return modified world
 readOp :: World -> ValueInstruction -> World
 readOp world vi =
@@ -182,7 +182,7 @@ adjRBaseOp world vi =
      in world {rbase = rb, offset = offset world + 2}
 
 -- | select appropriate operation evaluator. The return value is the modified world
---   and a boolean indicating whether or not the program should continue running. 
+--   and a boolean indicating whether or not the program should continue running.
 eval :: World -> Statement -> (World, Bool)
 eval world (Add, params) = (binOp world Add params, True)
 eval world (Mult, params) = (binOp world Mult params, True)
@@ -200,7 +200,7 @@ eval world (Inp, [param]) = (w', not $ inWait w')
 run :: World -> World
 run world =
     case eval world (addrToStatement world) of
-        (world', True) -> run world'
+        (world', True)  -> run world'
         (world', False) -> world'
 
 solution1 = run initialWorld
@@ -218,7 +218,7 @@ digs x = digs (x `div` 10) ++ [x `mod` 10]
     -- | turns a list of digits back into a number
 
 undigs :: [Integer] -> Integer
-undigs [] = 0
+undigs []     = 0
 undigs (n:xs) = n * (10 ^ length xs) + undigs xs
 
 -- | Replace the Integer at location Int in the list. If the list isn't as long as the index,
@@ -228,7 +228,7 @@ writeMem index val list
     | index < length list =
         case splitAt index list of
             (before, _:after) -> before ++ val : after
-            _ -> list
+            _                 -> list
 writeMem index val list
     | index >= length list = writeMem index val list'
   where

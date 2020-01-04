@@ -1,7 +1,7 @@
 module Day09 where
 
-import AdventData (day09, day09ex01, day09ex02, day09ex03)
-import IntCode
+import           AdventData (day09, day09ex01, day09ex02, day09ex03)
+import           IntCode
 
 wex01 = setMemory initialComputer day09ex01
 
