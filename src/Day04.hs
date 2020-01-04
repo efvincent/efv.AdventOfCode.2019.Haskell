@@ -3,6 +3,7 @@ module Day04 where
 import Data.List (group)
 
 vmin = 284639
+
 vmax = 748759
 
 -- | Turns an integer into an list of digits
@@ -14,8 +15,10 @@ digs x = digs (x `div` 10) ++ [x `mod` 10]
 fixup :: [Int] -> [Int]
 fixup [] = []
 fixup [n] = [n]
-fixup (n1:n2:n3:rest) | n2 < n1 = n1 : fixup (n1:n1:rest)
-fixup [n1,n2] | n2 < n1 = [n1,n1] 
+fixup (n1:n2:n3:rest)
+    | n2 < n1 = n1 : fixup (n1 : n1 : rest)
+fixup [n1, n2]
+    | n2 < n1 = [n1, n1]
 fixup (n1:rest) = n1 : fixup rest
 
 -- | turns a list of digits back into a number
@@ -28,8 +31,8 @@ undigs (n:xs) = n * (10 ^ length xs) + undigs xs
 proc1 :: Int -> Int -> [Int] -> [Int]
 proc1 mx n c
     | n' > mx = c
-    | isValid = proc1 mx (n'+1) (n':c)
-    | otherwise = proc1 mx (n'+1) c
+    | isValid = proc1 mx (n' + 1) (n' : c)
+    | otherwise = proc1 mx (n' + 1) c
   where
     check = fixup $ digs n
     n' = undigs check
@@ -39,12 +42,13 @@ proc1 mx n c
 proc2 :: Int -> Int -> [Int] -> [Int]
 proc2 mx n c
     | n' > mx = c
-    | isValid = proc2 mx (n'+1) (n':c)
-    | otherwise = proc2 mx (n'+1) c
+    | isValid = proc2 mx (n' + 1) (n' : c)
+    | otherwise = proc2 mx (n' + 1) c
   where
     check = fixup $ digs n
     n' = undigs check
     isValid = elem 2 . map length . group $ check
 
 solution1 = length $ proc1 vmax vmin []
+
 solution2 = length $ proc2 vmax vmin []

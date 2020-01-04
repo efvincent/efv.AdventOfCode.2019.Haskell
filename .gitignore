@@ -2,3 +2,4 @@
 haskell-one.cabal
 *~
 .ionide/
+.vscode

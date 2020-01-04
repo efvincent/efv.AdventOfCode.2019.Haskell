@@ -17,20 +17,27 @@ intToTile 2 = Block
 intToTile 3 = HPaddle
 intToTile 4 = Ball
 
-data GameState = GameState { tiles  :: M.Map Pos Tile
-                           , score  :: Integer
-                           , ballX  :: Integer
-                           , paddleX:: Integer
-                           , comp   :: Computer
-                           , buffer :: [Integer] }
-                           deriving Show
+data GameState =
+    GameState
+        { tiles :: M.Map Pos Tile
+        , score :: Integer
+        , ballX :: Integer
+        , paddleX :: Integer
+        , comp :: Computer
+        , buffer :: [Integer]
+        }
+    deriving (Show)
 
-initGame = GameState { tiles   = M.empty
-                     , score   = 0
-                     , comp    = setMemory initialComputer day13
-                     , ballX   = 0
-                     , paddleX = 0
-                     , buffer  = [] }
+initGame =
+    GameState
+        { tiles = M.empty
+        , score = 0
+        , comp = setMemory initialComputer day13
+        , ballX = 0
+        , paddleX = 0
+        , buffer = []
+        }
+
 
 runGame :: GameState -> GameState
 runGame gs =

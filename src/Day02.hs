@@ -1,7 +1,7 @@
 module Day02 where
 
-import Data.List (splitAt)
 import AdventData (day02)
+import Data.List (splitAt)
 import Utility
 
 -- instructions say to replace posistions 1 and 2
@@ -12,12 +12,16 @@ memory = initMem 12 2
 
 run :: Int -> [Int] -> [Int]
 run pos mem =
-    if op /= 99 
-    then run (pos + 4) (replace pAns (fn (mem!!p1) (mem!!p2)) mem) 
-    else mem
-    where
-        (op:p1:p2:pAns:_) = drop pos mem
-        fn = case op of 1 -> (+); 2 -> (*); 99 -> \ _ _ -> 0
+    if op /= 99
+        then run (pos + 4) (replace pAns (fn (mem !! p1) (mem !! p2)) mem)
+        else mem
+  where
+    (op:p1:p2:pAns:_) = drop pos mem
+    fn =
+        case op of
+            1 -> (+)
+            2 -> (*)
+            99 -> \_ _ -> 0
 
 day2part1 = head $ run 0 memory
 
@@ -26,15 +30,16 @@ day2part1 = head $ run 0 memory
 target = 19690720
 
 -- | Given a range as [(Int,Int)] and a target, find the pair that solves or nothing
-solve :: [(Int,Int)] -> Int -> Maybe (Int,Int)
+solve :: [(Int, Int)] -> Int -> Maybe (Int, Int)
 solve [] _ = Nothing
-solve ((v1,v2):xs) target =
+solve ((v1, v2):xs) target =
     if target == head (run 0 $ initMem v1 v2)
-    then Just (v1, v2)
-    else solve xs target
+        then Just (v1, v2)
+        else solve xs target
 
 -- | This can be simplified (pretty sure) once I get to the point of learning
 -- how to use `do` notation and the `Maybe` monad
-day2part2 = case solve [(x,y) | x <- [0..99], y <- [0..99]] target of
-            Just (v1, v2) -> Just (100 * v1 + v2)
-            Nothing -> Nothing
+day2part2 =
+    case solve [(x, y) | x <- [0 .. 99], y <- [0 .. 99]] target of
+        Just (v1, v2) -> Just (100 * v1 + v2)
+        Nothing -> Nothing
