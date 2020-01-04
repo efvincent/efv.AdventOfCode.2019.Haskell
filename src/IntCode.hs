@@ -30,7 +30,7 @@ module IntCode ( run
          8 -> (Equals, 3)
          9 -> (AdjRBase, 1)
          99 -> (Terminate,0)
-         otherwise -> error ("unknown operand value: " ++ (show n))
+         _ -> error ("unknown operand value: " ++ show n)
 
     -- | Parameter is either a positional type, where the Int is an address, or
     -- a value type, where the Int is the literal value of the parameter   
@@ -84,9 +84,9 @@ module IntCode ( run
     --   zero, even though we haven't padded memory.
     (!!!) :: Memory -> Integer -> Integer
     (!!!) mem addr =
-        if addr >= (toInteger $ length mem)
+        if addr >= toInteger (length mem)
         then 0
-        else (mem !! (fromInteger addr))
+        else mem !! fromInteger addr
 
     -- | Translates a value instruction to an address. Modes are:
     --   immediate: the value instruction is not an address, this is an error in this function
@@ -96,22 +96,22 @@ module IntCode ( run
     toAddr :: Computer -> ValueInstruction -> Integer
     toAddr _ (Immed, i) = error "Cannot change an immediate mode value instruction to an address"
     toAddr _ (Pos, i) = i
-    toAddr comp (Rel, i) = (rbase comp) + i
+    toAddr comp (Rel, i) = rbase comp + i
 
     -- | Given a computer and a value instruction, get the value
     toVal :: Computer -> ValueInstruction -> Integer
     toVal _ (Immed, i) = i
-    toVal comp vi = mem comp !!! (toAddr comp vi)
+    toVal comp vi = mem comp !!! toAddr comp vi
 
     -- | Get the statement at the next offset in the computer 
     addrToStatement :: Computer -> Statement
     addrToStatement comp =
         (op, zip modes raws)
         where
-            raw = mem comp !!! (offset comp)
+            raw = mem comp !!! offset comp
             ds =
                 let d = digs raw in
-                if length d < 5 then (take (5 - length d) $ repeat 0) ++ d else d
+                if length d < 5 then replicate (5 - length d) 0 ++ d else d
             l = length ds
             (op,nParams) = opOfInt . undigs $ drop (l - 2) ds
             modes = [itoPosMode (ds !!(l - 3 - p)) | p <- [0..nParams-1]]
@@ -160,9 +160,9 @@ module IntCode ( run
             offset = newOffset
         }
       where
-        (v1,v2)   = (toVal comp (params !! 0), toVal comp (params !! 1))
+        (v1,v2)   = (toVal comp (head params), toVal comp (params !! 1))
         fn        = if op == JumpF then (==) else (/=)
-        newOffset = if fn v1 0 then v2 else (offset comp) + 3
+        newOffset = if fn v1 0 then v2 else offset comp + 3
 
     boolOp :: Computer -> Op -> [ValueInstruction] -> Computer
     boolOp comp op params =
@@ -178,7 +178,7 @@ module IntCode ( run
 
     adjRBaseOp :: Computer -> ValueInstruction -> Computer
     adjRBaseOp comp vi =
-        let rb = rbase comp + (toVal comp vi) in
+        let rb = rbase comp + toVal comp vi in
         comp {
             rbase = rb,
             offset = offset comp + 2
@@ -187,15 +187,15 @@ module IntCode ( run
     -- | select appropriate operation evaluator. The return value is the modified computer
     --   and a boolean indicating whether or not the program has halted. 
     eval :: Computer -> Statement -> Computer
-    eval comp (Inp, (param:[]))      = readOp comp param
-    eval comp (Outp, (param:[]))     = writeOp comp param
+    eval comp (Inp, [param])         = readOp comp param
+    eval comp (Outp, [param])        = writeOp comp param
     eval comp (Add,  params)         = binOp comp Add  params
     eval comp (Mult, params)         = binOp comp Mult params
     eval comp (JumpF,params)         = jumpOp comp JumpF params
     eval comp (JumpT,params)         = jumpOp comp JumpT params
     eval comp (Equals,params)        = boolOp comp Equals params
     eval comp (LessThan,params)      = boolOp comp LessThan params
-    eval comp (AdjRBase, (param:[])) = adjRBaseOp comp param
+    eval comp (AdjRBase, [param])    = adjRBaseOp comp param
     eval comp (Terminate, _)         = comp { terminated = True }
 
     run :: Computer -> Computer
@@ -259,12 +259,12 @@ module IntCode ( run
     -- | Replace the Integer at location Int in the list. If the list isn't as long as the index,
     -- pad out the list so that it is
     writeMem :: Int -> Integer -> Memory -> Memory
-    writeMem index val list | index < (length list) =
+    writeMem index val list | index < length list =
         case splitAt index list of
         (before, _:after) -> before ++ val : after
         _ -> list
-    writeMem index val list | index >= (length list) =
+    writeMem index val list | index >= length list =
         writeMem index val list'
       where
-        pad = take (index - (length list) + 1) (repeat 0)
+        pad = replicate (index - length list + 1) 0
         list' = list ++ pad
