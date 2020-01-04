@@ -1,9 +1,9 @@
 module Day13 where
 
-import           IntCode
-import qualified Data.Map as M
 import           AdventData (day13)
-import           Data.List (sort)
+import           Data.List  (sort)
+import qualified Data.Map   as M
+import           IntCode
 import           Utility
 
 data Tile = Empty | Wall | Block | HPaddle | Ball deriving (Show, Eq, Ord)
@@ -19,12 +19,12 @@ intToTile 4 = Ball
 
 data GameState =
     GameState
-        { tiles :: M.Map Pos Tile
-        , score :: Integer
-        , ballX :: Integer
+        { tiles   :: M.Map Pos Tile
+        , score   :: Integer
+        , ballX   :: Integer
         , paddleX :: Integer
-        , comp :: Computer
-        , buffer :: [Integer]
+        , comp    :: Computer
+        , buffer  :: [Integer]
         }
     deriving (Show)
 
@@ -64,15 +64,15 @@ handleOutput gs val c =
     case length b of
         3 ->
             let [other,y,x] = b in
-            if x == -1 then 
+            if x == -1 then
                 gs { comp = c, buffer = [], score = other }
-            else            
+            else
                 let tid = intToTile other in
                 let gs' = gs { comp = c, buffer = [], tiles = M.insert (x,y) tid (tiles gs) } in
                 case tid of
                     HPaddle -> gs' { paddleX = x }
-                    Ball ->    gs' { ballX = x }
-                    _ ->       gs'
+                    Ball    ->    gs' { ballX = x }
+                    _       ->       gs'
         _ -> gs { comp = c , buffer = b }
 
 solve_d13_1 =
