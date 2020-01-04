@@ -4,13 +4,11 @@ import           Data.List.Split (splitOn)
 import qualified Data.Map.Strict as M
 import qualified Data.Set as S
 import           AdventData (day03)
+import           Utility
 
 type Loc = (Int,Int)
 type Intersection = (Loc, S.Set Int)
 type Instruction = (Char, Int)
-
-stoi :: String -> Int
-stoi = read
 
 toInstruction :: String -> Instruction
 toInstruction s = (head s, stoi (tail s))
