@@ -189,7 +189,7 @@ adjRBaseOp comp vi =
 eval :: Computer -> Statement -> Computer
 eval comp (Inp, [param])      = readOp comp param
 eval comp (Outp, [param])     = writeOp comp param
-eval comp (Add,  params)      = binOp comp Add  params
+eval comp (Add, params)       = binOp comp Add params
 eval comp (Mult, params)      = binOp comp Mult params
 eval comp (JumpF,params)      = jumpOp comp JumpF params
 eval comp (JumpT,params)      = jumpOp comp JumpT params
