@@ -1,5 +1,8 @@
 module Utility where
 
+import Data.Text (Text)
+import Text.Read (readMaybe)
+
 replace :: Int -> a -> [a] -> [a]
 replace i e xs = case splitAt i xs of
     (before, _:after) -> before ++ e : after
@@ -7,3 +10,6 @@ replace i e xs = case splitAt i xs of
 
 stoi :: String -> Int
 stoi = read
+
+stoiM :: String -> Maybe Int
+stoiM = readMaybe
