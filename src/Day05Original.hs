@@ -2,7 +2,6 @@ module Day05Original where
 
 import           AdventData  (day05)
 import           Data.List   (splitAt)
-import           Debug.Trace
 
 data Op
     = Add
@@ -46,6 +45,7 @@ itoPosMode i =
         0 -> Pos
         1 -> Immed
         2 -> Rel
+        _ -> error "unexpected position mode"
 
 type Address = Integer
 
@@ -74,6 +74,7 @@ data World =
     deriving (Show)
 
 -- | starting state of the world
+initialWorld :: World
 initialWorld =
     World {ins = [1], inWait = False, outs = [], mem = day05, wid = 0, rbase = 0, offset = 0}
 
@@ -82,10 +83,10 @@ initialWorld =
 --   operation asking for a location that would be padded, then we send them the default of
 --   zero, even though we haven't padded memory.
 (!!!) :: Memory -> Integer -> Integer
-(!!!) mem addr =
-    if addr >= toInteger (length mem)
+(!!!) m addr =
+    if addr >= toInteger (length m)
         then 0
-        else mem !! fromInteger addr
+        else m !! fromInteger addr
 
 -- | Translates a value instruction to an address. Modes are:
 --   immediate: the value instruction is not an address, this is an error in this function
@@ -93,7 +94,7 @@ initialWorld =
 --   relative: the value represents an offset from a relative base. The relative base can be
 --             found in the world context
 toAddr :: World -> ValueInstruction -> Integer
-toAddr _ (Immed, i) = error "Cannot change an immediate mode value instruction to an address"
+toAddr _ (Immed, _) = error "Cannot change an immediate mode value instruction to an address"
 toAddr _ (Pos, i) = i
 toAddr world (Rel, i) = rbase world + i
     -- | Given a world and a value instruction, get the value
@@ -128,6 +129,7 @@ binOp world op params =
         case op of
             Add  -> (+)
             Mult -> (*)
+            _    -> error "invalid operation during binOp"
     (v1, v2) = (toVal world (head params), toVal world (params !! 1))
 
 -- | Read from the World's inputs, write it to the target indicated by the value
@@ -196,6 +198,7 @@ eval world (AdjRBase, [param]) = (adjRBaseOp world param, True)
 eval world (Inp, [param]) = (w', not $ inWait w')
   where
     w' = readOp world param
+eval world _ = error "Invalid operation configuration"
 
 run :: World -> World
 run world =
