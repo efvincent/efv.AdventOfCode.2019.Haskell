@@ -71,8 +71,8 @@ handleOutput gs val c =
                 let gs' = gs { comp = c, buffer = [], tiles = M.insert (x,y) tid (tiles gs) } in
                 case tid of
                     HPaddle -> gs' { paddleX = x }
-                    Ball    ->    gs' { ballX = x }
-                    _       ->       gs'
+                    Ball    -> gs' { ballX = x }
+                    _       -> gs'
         _ -> gs { comp = c , buffer = b }
 
 solve_d13_1 =
