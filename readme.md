@@ -118,8 +118,6 @@ F# of course allows recursion, but it often feels like an antipattern if there's
 ## [Day 05](https://adventofcode.com/2019/day/5)
 _I've revisited day 5 a couple of times as required by subsequent days_
 
-NOTE: The IntCode computer has been refactored into it's own 
-
 Day 5 is when it starts getting really fun. The IntCode computer from day 2 starts getting enhanced. This happens here and also subsequent days. The first enhancement is adding opcodes for input and output. I completely start over from `Day02.hs` with `Day05.hs` The first difference is that we have more opcodes:
 
 ```Haskell
@@ -187,6 +185,8 @@ binOp world op params =
 ```
 
 There's more to it - check the source. Working on the IntCode computer is a lot of fun and I'm enjoying it when we're asked to return to it an enhance it. This happens in Day 7 and Day 9 (writing this after Day 10) again so far, I'm sure they'll continue to revisit it.
+
+NOTE: The IntCode computer has been refactored into it's own module and modified significantly. This is because the Day 11 puzzle revealed a problem with the way input and output was working, queueing up output especially; when there is output it is synchronous, so it needs to suspend processing and have the output consumed, and then resume processing. Same with input; when there's an input made, the IntCode computer must resume processing immediately.
 
 ## [Day 06](https://adventofcode.com/2019/day/6)
 Part 1 was one of the easier ones (see the description). It basically invovled summing the counts of edges from every node in a tree back to the root. It got worse...
