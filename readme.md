@@ -118,6 +118,8 @@ F# of course allows recursion, but it often feels like an antipattern if there's
 ## [Day 05](https://adventofcode.com/2019/day/5)
 _I've revisited day 5 a couple of times as required by subsequent days_
 
+NOTE: The IntCode computer has been refactored into it's own 
+
 Day 5 is when it starts getting really fun. The IntCode computer from day 2 starts getting enhanced. This happens here and also subsequent days. The first enhancement is adding opcodes for input and output. I completely start over from `Day02.hs` with `Day05.hs` The first difference is that we have more opcodes:
 
 ```Haskell
