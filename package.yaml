@@ -22,12 +22,15 @@ dependencies:
 - split
 - containers
 - utility-ht
+- hscolour
+- pretty-show
+- ansi-terminal
 
 library:
   source-dirs: src
 
 executables:
-  efv-advent-exe:
+  advent:
     main:                Main.hs
     source-dirs:         app
     ghc-options:
