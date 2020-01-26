@@ -16,16 +16,10 @@ type Cookbook   = [Recipe]
 
 deser :: String -> Maybe Cookbook
 deser raw =
-    mapM deserLine rawRecipes
-  where
-    rawRecipes = map (splitOn "=>") $ lines raw :: [[String]]
+    mapM deserLine . map (splitOn "=>") . lines $ raw
 
 deserLine :: [String] -> Maybe Recipe
-deserLine [s1,s2] =
-    mzip output ingredients
-  where
-    ingredients = mapM deserPair (filter (/= "") $ splitOn "," s1)
-    output = deserPair s2
+deserLine [s1,s2] = mzip (deserPair s2) . mapM deserPair . filter (/= "") .splitOn "," $ s1
 deserLine _ = Nothing
 
 deserPair :: String -> Maybe Ingredient
