@@ -13,7 +13,7 @@ type Intersection = (Loc, S.Set Int)
 type Instruction = (Char, Int)
 
 toInstruction :: String -> Instruction
-toInstruction s = (head s, stoi (tail s))
+toInstruction s = (head s, read (tail s))
 
 instToPath :: [Instruction] -> [(Loc, Int)]
 instToPath ins = loop ins ((0, 0), 0)
