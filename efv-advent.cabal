@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: d34a03e029e13ae24f641ff0a9778b45566ade5d758562fa25d42b7ba611717a
+-- hash: 8ecb11808cdc05dc75d298175e89b16ede0270e3e2d4f0b73fd0d87c50c24baf
 
 name:           efv-advent
 version:        0.1.0.0
@@ -41,6 +41,7 @@ library
       Day13
       Day14
       IntCode
+      LearningState
       Utility
   other-modules:
       Paths_efv_advent
@@ -51,6 +52,7 @@ library
     , base >=4.7 && <5
     , containers
     , hscolour
+    , mtl
     , pretty-show
     , split
     , string-qq
@@ -71,6 +73,7 @@ executable advent
     , containers
     , efv-advent
     , hscolour
+    , mtl
     , pretty-show
     , split
     , string-qq
@@ -92,6 +95,7 @@ test-suite efv-advent-test
     , containers
     , efv-advent
     , hscolour
+    , mtl
     , pretty-show
     , split
     , string-qq

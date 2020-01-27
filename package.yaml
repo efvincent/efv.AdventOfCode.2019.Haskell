@@ -25,6 +25,7 @@ dependencies:
 - hscolour
 - pretty-show
 - ansi-terminal
+- mtl
 
 library:
   source-dirs: src
