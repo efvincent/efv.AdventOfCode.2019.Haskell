@@ -68,12 +68,14 @@ varUpdateS str val = do
 
 runS :: Memory -> Memory 
 runS initMem =
-    let (val,mem) = runState (do 
-        varUpdateS 1 "eric"
-        varUpdateS 2 "karin"
-        varUpdateS 3 "cole"
-        x <- varLookUpS 2
-        varUpdateS 4 x) initMem in 
+    let (val,mem) = 
+                    runState (
+                        do 
+                            varUpdateS 1 "eric"
+                            varUpdateS 2 "karin"
+                            varUpdateS 3 "cole"
+                            x <- varLookUpS 2
+                            varUpdateS 4 x) initMem in 
     mem
 
 -- This means that the state monad functions with two things -
