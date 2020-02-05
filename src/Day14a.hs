@@ -3,7 +3,7 @@ module Day14a where
 import           AdventData          (day14, day14ex01, day14ex02, day14ex03,
                                       day14ex04, day14ex05)
 import           Control.Monad.State
-import           Data.List.Split     (splitOn)
+import           Data.List.Split     (splitOn, splitWhen)
 import qualified Data.Map            as M
 import           Utility             (stoiM)
 
@@ -11,6 +11,7 @@ type Quantity = Int
 type Symbol = String
 data Recipe = Recipe { symbol      :: Symbol
                      , yields      :: Int
+                     , fundemental :: Bool
                      , ingredients :: [(Symbol, Quantity) ] }
                      deriving (Show, Eq)
 type Cookbook = M.Map Symbol Recipe
@@ -21,22 +22,47 @@ deserCookbook s =
 
 deserRecipe :: String -> Recipe
 deserRecipe s =
-    Recipe { symbol = sym, yields = q, ingredients = ings }
+    Recipe { symbol = sym, yields = q, fundemental = fund, ingredients = ings }
   where
     [rIngs,recipeFor] = splitOn "=>" s
     (sym,q) = deserSymQuant recipeFor
     ings = map deserSymQuant . splitOn "," $ rIngs
+    fund = any (\(s,_) -> s == "ORE") ings
 
 deserSymQuant :: String -> (Symbol, Quantity)
 deserSymQuant s = let [q,sym] = words s in (sym, read q)
 
-mkShoppingList :: Symbol -> Quantity -> Cookbook -> [(Symbol, Quantity)]
-mkShoppingList sym quant cb =
-    ings 
+isMadeOfOre :: M.Map String Recipe -> String -> Bool
+isMadeOfOre cb sym =
+    case fund of 
+        Just f -> f
+        Nothing -> False
   where
-    ings = 
-        case M.lookup sym cb of 
-            Just r -> 
-                let ings = ingredients r in
-                concatMap (\(s,q) -> [(s, (quant * q))] ++ mkShoppingList s (quant * q) cb) ings
-            Nothing   -> []
+    fund = do
+        r <- M.lookup sym cb
+        return $ fundemental r
+
+solve :: Cookbook -> [(Symbol, Quantity)]
+solve cb =
+    undefined
+  where
+    madeOfOre = filter (isMadeOfOre cb) . map fst . M.toList $ cb
+
+msl :: Cookbook -> [String] -> [(Symbol,Quantity)] -> [(Symbol,Quantity)]
+msl _ _ [] = []
+msl cb madeOfOre ((sym,n):xs) = 
+    if sym == "ORE" then [] else
+    msl cb $ xs ++ subIngs
+  where 
+    Just r = M.lookup sym cb
+    subIngs =
+        case fundemental r of
+            True -> [(sym,n)]
+            _    -> ingredients r
+    
+
+cb = deserCookbook day14ex01      
+lu :: Symbol -> Maybe Recipe
+lu = flip M.lookup cb
+
+madeOfOre = filter (isMadeOfOre cb) . map fst . M.toList $ cb

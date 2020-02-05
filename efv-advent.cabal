@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 8ecb11808cdc05dc75d298175e89b16ede0270e3e2d4f0b73fd0d87c50c24baf
+-- hash: 3ffbef71d092cf25906e00b9156c2237812c3ebd4697ec117b96ee25baff1a1e
 
 name:           efv-advent
 version:        0.1.0.0
@@ -40,6 +40,7 @@ library
       Day12
       Day13
       Day14
+      Day14a
       IntCode
       LearningState
       Utility
