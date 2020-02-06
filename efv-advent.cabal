@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 3ffbef71d092cf25906e00b9156c2237812c3ebd4697ec117b96ee25baff1a1e
+-- hash: 85572790587a3ab9d5a4bd857e9a0d655c61b0b6cf840ed9fb427c0287583a78
 
 name:           efv-advent
 version:        0.1.0.0
@@ -52,6 +52,7 @@ library
       ansi-terminal
     , base >=4.7 && <5
     , containers
+    , extra
     , hscolour
     , mtl
     , pretty-show
@@ -73,6 +74,7 @@ executable advent
     , base >=4.7 && <5
     , containers
     , efv-advent
+    , extra
     , hscolour
     , mtl
     , pretty-show
@@ -95,6 +97,7 @@ test-suite efv-advent-test
     , base >=4.7 && <5
     , containers
     , efv-advent
+    , extra
     , hscolour
     , mtl
     , pretty-show

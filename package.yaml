@@ -26,6 +26,7 @@ dependencies:
 - pretty-show
 - ansi-terminal
 - mtl
+- extra
 
 library:
   source-dirs: src
