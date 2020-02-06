@@ -4,7 +4,7 @@ import           AdventData          (day14, day14ex01, day14ex02, day14ex03,
                                       day14ex04, day14ex05)
 import           Control.Monad.State
 import           Data.List.Split     (splitOn, splitWhen)
-import           Data.List.Extra     (sortOn, group, groupOn)
+import           Data.List.Extra     (sortOn, group, groupOn, intercalate)
 import qualified Data.Map            as M
 import           Utility             (stoiM)
 
@@ -69,10 +69,42 @@ oreQuant cookbook (sym,q) =
     b = batches q y
     Just oreQ = lookup "ORE" (ingredients r) 
 
-step2 :: String -> Int
-step2 raw =
+{-
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!                               !
+!   ITS THE FRACKING LEFTOVERS  !
+!                               !
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+we have to re-use the leftovers wow.
+-}
+solve :: String -> Int
+solve raw =
     sum . map (oreQuant cookbook) $ x
-    
   where
     cookbook = deserCookbook raw 
     x = map (foldl addsq ("",0)) . groupOn fst . sortOn fst . snd $ top cookbook [("FUEL",1)] []
+
+step3 :: String -> SymQ -> [[SymQ]]
+step3 raw symq =
+    let cookbook = deserCookbook raw in
+    groupOn fst . sortOn fst. snd $ top cookbook [symq] []
+
+pIng :: SymQ -> String
+pIng (s,q) = show q ++ s
+
+pIngs :: [SymQ] -> String
+pIngs ings = intercalate ", " . map pIng $ ings
+
+pRecipe :: Recipe -> String
+pRecipe r =
+    ings ++ " => " ++ (show $ yields r) ++ " " ++ (symbol r)
+  where
+    ings = intercalate ", " . map (\(s,q) -> show q ++ " " ++ s) $ ingredients r
+
+pCookbook :: Cookbook -> String
+pCookbook cb =
+    let l = map snd . M.toList $ cb in
+    intercalate "\n" . map pRecipe $ l
+
+printCb :: Cookbook -> IO ()
+printCb = putStrLn . pCookbook
