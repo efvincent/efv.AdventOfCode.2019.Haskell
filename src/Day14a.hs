@@ -108,3 +108,6 @@ pCookbook cb =
 
 printCb :: Cookbook -> IO ()
 printCb = putStrLn . pCookbook
+
+printCbS :: String -> IO ()
+printCbS = putStrLn . pCookbook . deserCookbook
