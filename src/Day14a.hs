@@ -52,7 +52,7 @@ top cb (symq@(sym,quant):xs) reduced =
     else top cb (xs ++ ings) reduced
   where
     Just recip = M.lookup sym cb
-    ings = (\(s,q) -> (s,q*quant)) <$> ingredients recip
+    ings = (\(s,q) -> (s,q*quant)) <$> ingredients recip :: [SymQ]
     
 addsq :: (Symbol,Quantity) -> (Symbol,Quantity) -> (Symbol,Quantity)
 addsq (_,q1) (s,q2) = (s,q1 + q2)
@@ -79,10 +79,13 @@ we have to re-use the leftovers wow.
 -}
 solve :: String -> Int
 solve raw =
-    sum . map (oreQuant cookbook) $ x
+    sum . map (oreQuant cookbook) $ simpleIngredients
   where
     cookbook = deserCookbook raw 
-    x = map (foldl addsq ("",0)) . groupOn fst . sortOn fst . snd $ top cookbook [("FUEL",1)] []
+    simpleIngredients = simplify cookbook
+
+simplify :: Cookbook -> [SymQ]
+simplify cb = map (foldl addsq ("",0)) . groupOn fst . sortOn fst . snd $ top cb [("FUEL",1)] []
 
 step3 :: String -> SymQ -> [[SymQ]]
 step3 raw symq =
